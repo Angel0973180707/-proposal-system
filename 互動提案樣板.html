@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品牌成交系統提案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6EE; --bg-2:#F1E7D3; --panel:#FFFFFF; --panel-2:#F6EFE1;
+    --line:rgba(42,36,28,0.12); --text:#2A241E; --muted:#7C7166;
+    --amber:#BE7A34; --gold:#A97A28; --teal:#2E8377; --red-warn:#B23B3B;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg); color:var(--text); font-family:'Noto Sans TC', sans-serif; font-weight:300; line-height:1.7; padding-bottom:120px;}
+  ::selection{background:var(--amber); color:#161616;}
+  h1,h2,h3{font-family:'Noto Serif TC', serif; font-weight:700; letter-spacing:0.02em;}
+  .mono{font-family:'Space Mono', monospace;}
+
+  .ticker-wrap{background:var(--bg-2); border-bottom:1px solid var(--line); overflow:hidden; white-space:nowrap; padding:9px 0;}
+  .ticker{display:inline-flex; gap:48px; padding-left:100%; animation:scroll-left 22s linear infinite; font-family:'Space Mono', monospace; font-size:12px; color:var(--teal); letter-spacing:0.04em;}
+  .ticker span b{color:var(--gold); font-weight:700;}
+  @keyframes scroll-left{0%{transform:translateX(0);} 100%{transform:translateX(-100%);}}
+
+  .hero{padding:64px 24px 48px; max-width:760px; margin:0 auto; text-align:center;}
+  .eyebrow{font-family:'Space Mono', monospace; font-size:11px; color:var(--teal); letter-spacing:0.22em; text-transform:uppercase; margin-bottom:18px;}
+  .hero h1{font-size:clamp(28px, 6vw, 44px); line-height:1.35; background:linear-gradient(120deg, var(--gold), var(--amber) 60%, var(--text)); -webkit-background-clip:text; background-clip:text; color:transparent; margin-bottom:18px; white-space:pre-line;}
+  .hero p{color:var(--muted); font-size:15px; max-width:480px; margin:0 auto;}
+  .hero-note{margin-top:28px; font-size:13px; color:var(--muted); border:1px dashed var(--line); border-radius:10px; padding:14px 18px; display:inline-block;}
+
+  .stage-nav{position:sticky; top:0; z-index:50; background:rgba(250,246,238,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); display:flex; gap:8px; overflow-x:auto; padding:12px 16px;}
+  .stage-nav a{flex:0 0 auto; font-size:12.5px; color:var(--muted); text-decoration:none; padding:7px 14px; border:1px solid var(--line); border-radius:999px; white-space:nowrap; transition:.2s;}
+  .stage-nav a:hover{color:var(--text); border-color:var(--amber);}
+
+  section.stage{max-width:920px; margin:0 auto; padding:64px 24px 16px; border-top:1px solid var(--line);}
+  .stage-head{margin-bottom:32px;}
+  .stage-num{font-family:'Space Mono',monospace; color:var(--amber); font-size:13px; letter-spacing:0.1em;}
+  .stage-head h2{font-size:clamp(22px,4vw,30px); margin-top:6px;}
+  .stage-desc{color:var(--muted); font-size:14px; margin-top:10px; max-width:600px;}
+  .pick-hint{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--teal); margin-top:14px; border:1px solid rgba(95,168,160,0.35); padding:6px 12px; border-radius:999px;}
+
+  .slogan-grid{display:grid; gap:14px; margin-top:24px;}
+  .slogan-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px 22px; cursor:pointer; transition:.2s; position:relative;}
+  .slogan-card:hover{border-color:rgba(193,127,62,0.5);}
+  .slogan-card.selected{border-color:var(--amber); background:linear-gradient(135deg, rgba(193,127,62,0.12), var(--panel));}
+  .slogan-card h3{font-size:18px; font-weight:600; margin-bottom:6px;}
+  .slogan-card p{font-size:13px; color:var(--muted);}
+  .badge-selected{position:absolute; top:14px; right:14px; font-size:11px; background:var(--amber); color:#161616; padding:3px 10px; border-radius:999px; font-weight:700; opacity:0; transform:scale(0.8); transition:.2s;}
+  .slogan-card.selected .badge-selected{opacity:1; transform:scale(1);}
+
+  .length-toggle{display:flex; gap:8px; margin-top:28px;}
+  .length-toggle button{background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:8px 16px; border-radius:999px; font-size:12.5px; cursor:pointer; font-family:inherit;}
+  .length-toggle button.active{background:var(--teal); color:#0E1714; border-color:var(--teal); font-weight:700;}
+  .length-box{margin-top:16px; background:var(--panel-2); border-radius:12px; padding:20px; font-size:14px; color:var(--text); display:none; border-left:3px solid var(--gold);}
+  .length-box.show{display:block;}
+
+  .ip-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:24px;}
+  .ip-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .ip-card h4{font-size:15px; margin-bottom:4px;}
+  .ip-card .role-pct{font-family:'Space Mono',monospace; color:var(--gold); font-size:15px; margin:8px 0;}
+  .ip-card p{font-size:12px; color:var(--muted); margin-bottom:12px; min-height:48px;}
+  .freq-toggle{display:flex; gap:4px;}
+  .freq-toggle button{flex:1; background:var(--bg-2); border:1px solid var(--line); color:var(--muted); font-size:11px; padding:6px 0; cursor:pointer; font-family:inherit; border-radius:6px;}
+  .freq-toggle button.active{background:var(--amber); color:#161616; border-color:var(--amber); font-weight:700;}
+
+  .card-builder{display:grid; grid-template-columns:1.1fr 0.9fr; gap:28px; margin-top:24px; align-items:start;}
+  .block-list{display:flex; flex-direction:column; gap:8px;}
+  .block-row{display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px;}
+  .block-row.off{opacity:0.4;}
+  .block-row label{flex:1; font-size:13.5px; display:flex; align-items:center; gap:10px; cursor:pointer;}
+  .block-row input[type=checkbox]{accent-color:var(--amber); width:16px; height:16px;}
+  .block-arrows{display:flex; gap:4px;}
+  .block-arrows button{background:var(--bg-2); border:1px solid var(--line); color:var(--muted); width:24px; height:24px; border-radius:6px; cursor:pointer; font-size:12px;}
+  .block-arrows button:hover{color:var(--text); border-color:var(--teal);}
+
+  .phone-mock{position:sticky; top:90px; background:var(--bg-2); border:1px solid var(--line); border-radius:32px; padding:14px; max-width:260px; margin:0 auto;}
+  .phone-screen{background:linear-gradient(180deg, #FFFFFF, #F1E7D3); border-radius:22px; padding:14px 12px; min-height:340px; max-height:480px; overflow-y:auto;}
+  .phone-screen .ph-head{text-align:center; font-size:11px; color:var(--gold); letter-spacing:0.1em; margin-bottom:10px; font-family:'Space Mono',monospace;}
+  .ph-block{background:rgba(42,36,28,0.045); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:11.5px; margin-bottom:6px; color:var(--text);}
+  .ph-cta{margin-top:10px; background:var(--amber); color:#161616; text-align:center; border-radius:8px; padding:8px; font-size:12px; font-weight:700;}
+
+  .priority-wrap{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px;}
+  @media (max-width:640px){.priority-wrap{grid-template-columns:1fr;}}
+  .pool, .ranked{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; min-height:220px;}
+  .pool h4, .ranked h4{font-size:13px; color:var(--muted); margin-bottom:12px; font-weight:400;}
+  .pri-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:13px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:.15s;}
+  .pri-item:hover{border-color:var(--teal);}
+  .ranked .pri-item{border-color:var(--gold); background:rgba(217,174,95,0.08);}
+  .pri-item .rank-num{font-family:'Space Mono',monospace; color:var(--gold); font-weight:700;}
+
+  .matrix-grid{display:flex; flex-direction:column; gap:14px; margin-top:24px;}
+  .matrix-row{display:grid; grid-template-columns:110px 1fr 50px; align-items:center; gap:14px;}
+  .matrix-row .m-label{font-size:13px; color:var(--text);}
+  input[type=range]{-webkit-appearance:none; width:100%; height:6px; border-radius:99px; background:var(--bg-2); outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--amber); cursor:pointer; border:2px solid var(--bg);}
+
+  .total-readout{margin-top:24px; display:flex; align-items:center; justify-content:space-between; background:var(--panel-2); border-radius:12px; padding:16px 20px;}
+  .total-readout .t-label{font-size:13px; color:var(--muted);}
+  .total-readout .t-num{font-family:'Space Mono',monospace; font-size:24px; font-weight:700;}
+  .t-num.ok{color:var(--teal);} .t-num.warn{color:var(--red-warn);}
+
+  .submit-zone{max-width:920px; margin:64px auto 0; padding:0 24px;}
+  .submit-box{background:linear-gradient(135deg, var(--panel-2), var(--panel)); border:1px solid var(--line); border-radius:18px; padding:32px 28px; text-align:center;}
+  .submit-box h3{font-size:20px; margin-bottom:10px;}
+  .submit-box p{color:var(--muted); font-size:13.5px; margin-bottom:22px;}
+  .btn-primary{background:var(--amber); color:#161616; border:none; padding:13px 32px; border-radius:999px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;}
+  .btn-primary:hover{background:var(--gold);}
+  .btn-primary:disabled{opacity:.5; cursor:wait;}
+  textarea.client-note{width:100%; margin-top:18px; background:var(--bg-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; color:var(--text); font-family:inherit; font-size:13px; min-height:70px; resize:vertical;}
+  input.client-field{width:100%; margin-top:10px; background:var(--bg-2); border:1px solid var(--line); border-radius:10px; padding:10px 14px; color:var(--text); font-family:inherit; font-size:13px;}
+
+  .summary-panel{display:none; margin-top:24px; text-align:left; background:var(--bg-2); border:1px solid var(--gold); border-radius:14px; padding:22px 24px;}
+  .summary-panel.show{display:block;}
+  .summary-panel h4{font-size:14px; color:var(--gold); margin-bottom:14px;}
+  .summary-panel dl{font-size:13px; line-height:1.9;}
+  .summary-panel dt{color:var(--muted); margin-top:10px;}
+  .summary-panel dd{color:var(--text);}
+  .copy-btn{margin-top:18px; background:transparent; border:1px solid var(--teal); color:var(--teal); padding:9px 18px; border-radius:999px; font-size:12.5px; cursor:pointer; font-family:inherit;}
+  .copy-btn:hover{background:var(--teal); color:#0E1714;}
+  .save-status{font-size:11.5px; color:var(--muted); margin-top:10px;}
+
+  footer{text-align:center; color:var(--muted); font-size:11.5px; padding:48px 24px 0;}
+
+  @media (max-width:760px){
+    .ip-grid{grid-template-columns:1fr;}
+    .card-builder{grid-template-columns:1fr;}
+    .phone-mock{position:relative; top:0; max-width:280px;}
+    .matrix-row{grid-template-columns:84px 1fr 42px; gap:10px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="ticker-wrap"><div class="ticker" id="ticker"></div></div>
+
+<div class="hero">
+  <div class="eyebrow" id="heroEyebrow"></div>
+  <h1 id="heroTitle"></h1>
+  <p id="heroSub"></p>
+  <div class="hero-note" id="heroNote"></div>
+</div>
+
+<nav class="stage-nav">
+  <a href="#stage1">01 品牌定位</a>
+  <a href="#stage2">02 IP 角色配置</a>
+  <a href="#stage3">03 智慧名片架構</a>
+  <a href="#stage4">04 經營優先序</a>
+  <a href="#stage5">05 內容矩陣配置</a>
+  <a href="#submit">送出選擇</a>
+</nav>
+
+<section class="stage" id="stage1">
+  <div class="stage-head">
+    <div class="stage-num">STAGE 01</div>
+    <h2>品牌主標語，您選哪一句？</h2>
+    <p class="stage-desc" id="stage1Desc"></p>
+    <div class="pick-hint">👆 點擊卡片即可選定</div>
+  </div>
+  <div class="slogan-grid" id="sloganGrid"></div>
+  <div class="length-toggle">
+    <button class="active" data-len="30">30 秒版本</button>
+    <button data-len="60">60 秒版本</button>
+  </div>
+  <div class="length-box show" id="len30"></div>
+  <div class="length-box" id="len60"></div>
+</section>
+
+<section class="stage" id="stage2">
+  <div class="stage-head">
+    <div class="stage-num">STAGE 02</div>
+    <h2 id="stage2Title"></h2>
+    <p class="stage-desc" id="stage2Desc"></p>
+    <div class="pick-hint">👆 點擊每張卡片下方按鈕調整頻率</div>
+  </div>
+  <div class="ip-grid" id="ipGrid"></div>
+</section>
+
+<section class="stage" id="stage3">
+  <div class="stage-head">
+    <div class="stage-num">STAGE 03</div>
+    <h2 id="stage3Title"></h2>
+    <p class="stage-desc" id="stage3Desc"></p>
+    <div class="pick-hint">👆 勾選 / ▲▼ 排序</div>
+  </div>
+  <div class="card-builder">
+    <div class="block-list" id="blockList"></div>
+    <div class="phone-mock">
+      <div class="phone-screen">
+        <div class="ph-head">智慧名片預覽</div>
+        <div id="phoneContent"></div>
+        <div class="ph-cta" id="phoneCta"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="stage4">
+  <div class="stage-head">
+    <div class="stage-num">STAGE 04</div>
+    <h2 id="stage4Title"></h2>
+    <p class="stage-desc" id="stage4Desc"></p>
+    <div class="pick-hint">👆 點擊加入優先序，再點一次可移除</div>
+  </div>
+  <div class="priority-wrap">
+    <div class="pool"><h4>所有經營方向</h4><div id="priPool"></div></div>
+    <div class="ranked"><h4>您的前三優先（依點選順序）</h4><div id="priRanked"></div></div>
+  </div>
+</section>
+
+<section class="stage" id="stage5">
+  <div class="stage-head">
+    <div class="stage-num">STAGE 05</div>
+    <h2>一年內容怎麼分配？拉看看比例</h2>
+    <p class="stage-desc">調整滑桿分配各類內容占比，總和需等於 100%。已預填建議配置，歡迎依經營重點調整。</p>
+  </div>
+  <div class="matrix-grid" id="matrixGrid"></div>
+  <div class="total-readout"><span class="t-label">目前總計</span><span class="t-num" id="totalPct">100%</span></div>
+</section>
+
+<div class="submit-zone" id="submit">
+  <div class="submit-box">
+    <h3>確認您的提案選擇</h3>
+    <p>點擊下方按鈕，我們會整理出一份屬於您的決策摘要，方便雙方對齊後續執行方向。</p>
+    <input class="client-field" id="contactName" placeholder="您的稱呼 / 公司名稱（選填，方便我們對應紀錄）">
+    <textarea class="client-note" id="clientNote" placeholder="（選填）想補充的想法或顧慮，例如特定區塊的疑慮、預算考量等..."></textarea>
+    <br>
+    <button class="btn-primary" id="submitBtn">產生我的提案摘要</button>
+    <div class="summary-panel" id="summaryPanel">
+      <h4>★ 您的提案決策摘要</h4>
+      <dl id="summaryContent"></dl>
+      <button class="copy-btn" id="copyBtn">複製摘要文字</button>
+      <div class="save-status" id="saveStatus"></div>
+    </div>
+  </div>
+</div>
+
+<footer id="footerText"></footer>
+
+<script>
+/* ============================================================
+   客戶設定區 START —— 每個新客戶只需要修改這一區塊
+   其餘 HTML / CSS / JS 邏輯為共用樣板，不需異動
+   ============================================================ */
+const CONFIG = {
+  // 案件識別碼：用來在後端資料表區分不同客戶／提案，建議格式 客戶代號-日期
+  caseCode: "JINXIN-20260701",
+  clientName: "琞鑫興業",
+
+  // 若已串接 GAS 回傳，填入部署網址；留空字串則不會嘗試回傳，僅本機顯示摘要
+  gasEndpoint: "",
+
+  tickerItems: [
+    {label:"環控溫度", valueId:"temp", base:18.2, range:1.6, unit:"°C", decimals:1},
+    {label:"濕度", valueId:"hum", base:74, range:5, unit:"%", decimals:0},
+    {label:"菌絲活性指數", valueId:"act", base:89, range:6, unit:"", decimals:0},
+    {label:"監測節點", staticText:"14 / 14 在線"},
+    {label:"品質追溯", staticText:"已啟用"},
+  ],
+
+  hero: {
+    eyebrow: "品牌成交系統提案 · 互動版",
+    title: "以科技讀懂自然\n以智能守護純粹",
+    subtitle: "這份提案不是要您「看完同意」，而是邀請您在每個關鍵決策點親自選擇。往下滑動，您會在五個階段中做出真實的選擇——最後我們會把您的決定整理成一份摘要。",
+    note: "提示：每個區塊都可以點擊互動，所有選擇會即時反映在畫面上"
+  },
+
+  stage1: {
+    desc: "三句標語都符合品牌核心理念，差別在語氣與切入角度。請點選您最希望對外溝通的版本。",
+    slogans: [
+      {id:"A", title:"以科技讀懂自然，以智能守護純粹。", desc:"原定案，呼應品牌核心理念，理性與詩意兼具，適合作為長期主標語。", selected:true},
+      {id:"B", title:"看得見的珍稀，測得出的純粹。", desc:"更直白點出「可驗證」的差異化優勢，適合搭配檢驗報告、數據視覺素材使用。"},
+      {id:"C", title:"讓每一株牛樟芝，都經得起檢驗。", desc:"強調品質保證承諾，語氣最直接，適合用於信任建立類的廣告與短影音收尾。"},
+    ],
+    len30: "琞鑫興業專注牛樟芝智慧化培育，透過智能環控與大數據監測，精準掌握每一個生長環節，建立可追溯的品質管理系統。我們相信，真正的珍稀不該只靠信任傳說，而要經得起科學檢驗。創新為根，品質為本，永續為志——這是我們對每一位顧客的承諾。",
+    len60: "牛樟芝向來被視為台灣珍稀藥用菌，但品質參差、真偽難辨，一直是消費者最大的疑慮。琞鑫興業從根本解決這個問題——我們導入智能環控系統，即時監測溫濕度、光照、菌絲生長等關鍵數據，用大數據分析建立最適生長模型，讓培育不再仰賴經驗猜測，而是有科學依據的精準管理。從菌種選育到收成，每個階段都有完整品質管理紀錄，確保消費者拿到手上的，是真正經得起檢驗的牛樟芝。"
+  },
+
+  stage2: {
+    title: "三種信任角色，出鏡頻率由您決定",
+    desc: "品牌採「去個人化、系統化信任」架構。請為每個角色設定出鏡頻率：低／中／高。",
+    roles: [
+      {key:"system", name:"科技農業視覺", suggest:"建議 高", desc:"智能環控室、數據儀表板、培育現場畫面。零人物風險，曝光力最強。", defaultFreq:"high"},
+      {key:"team", name:"研發 / 品質團隊", suggest:"建議 中", desc:"以職稱代稱出鏡（如「品質管理專員」），增加人味又分散個人風險。", defaultFreq:"mid"},
+      {key:"expert", name:"外部健康顧問", suggest:"建議 低", desc:"合作營養師／中醫師等第三方背書，風險與公司完全切割。", defaultFreq:"low"},
+    ]
+  },
+
+  stage3: {
+    title: "智慧名片要放哪些區塊？順序怎麼排？",
+    desc: "勾選您要保留的區塊，並用箭頭調整順序——右側手機畫面會即時更新。",
+    ctaText: "加入 LINE 諮詢",
+    blocks: [
+      {id:"home", name:"首頁", on:true},
+      {id:"brandIntro", name:"品牌介紹", on:true},
+      {id:"brandStory", name:"品牌故事", on:true},
+      {id:"product", name:"產品介紹", on:true},
+      {id:"spirit", name:"企業精神", on:true},
+      {id:"origin", name:"品牌起源", on:true},
+      {id:"map", name:"Google 地圖", on:true},
+      {id:"line", name:"LINE", on:true},
+      {id:"social", name:"社群連結（FB/IG/YT/TikTok）", on:true},
+      {id:"website", name:"官方網站", on:false},
+      {id:"news", name:"最新消息", on:true},
+      {id:"event", name:"活動資訊", on:false},
+      {id:"coop", name:"合作流程", on:false},
+      {id:"faq", name:"常見問題", on:true},
+      {id:"book", name:"預約諮詢", on:true},
+    ]
+  },
+
+  stage4: {
+    title: "經營資源，您最想優先投入哪三項？",
+    desc: "以下方向都重要，但資源有限。請點選您認為前三優先的項目。",
+    pool: [
+      {key:"basic", label:"商家基本優化"},
+      {key:"review", label:"評論策略"},
+      {key:"photo", label:"照片策略"},
+      {key:"video", label:"影片策略"},
+      {key:"qa", label:"Q&A 經營"},
+      {key:"seo", label:"SEO 策略"},
+    ]
+  },
+
+  matrix: [
+    {key:"brandStory", label:"品牌故事", val:10},
+    {key:"knowledge", label:"產品知識", val:15},
+    {key:"tech", label:"科技培育", val:15},
+    {key:"culture", label:"企業文化", val:8},
+    {key:"behind", label:"幕後花絮", val:8},
+    {key:"factory", label:"工廠日常", val:10},
+    {key:"qa", label:"QA問答", val:8},
+    {key:"customer", label:"客戶故事", val:8},
+    {key:"coop", label:"合作案例", val:5},
+    {key:"health", label:"健康觀念", val:7},
+    {key:"myth", label:"常見迷思", val:6},
+    {key:"charity", label:"社會公益", val:5},
+    {key:"esg", label:"永續理念", val:5},
+  ],
+
+  footer: "品牌成交系統提案　|　以科技讀懂自然，以智能守護純粹"
+};
+/* ============================================================
+   客戶設定區 END
+   ============================================================ */
+
+const freqText = {low:'低', mid:'中', high:'高'};
+const state = {
+  slogan: CONFIG.stage1.slogans.find(s=>s.selected)?.id || CONFIG.stage1.slogans[0].id,
+  ipFreq: {},
+  blocks: JSON.parse(JSON.stringify(CONFIG.stage3.blocks)),
+  priorities: [],
+  matrix: JSON.parse(JSON.stringify(CONFIG.matrix)),
+};
+CONFIG.stage2.roles.forEach(r=> state.ipFreq[r.key] = r.defaultFreq);
+
+// ---------- Render static text from CONFIG ----------
+document.getElementById('heroEyebrow').textContent = CONFIG.hero.eyebrow;
+document.getElementById('heroTitle').textContent = CONFIG.hero.title;
+document.getElementById('heroSub').textContent = CONFIG.hero.subtitle;
+document.getElementById('heroNote').textContent = CONFIG.hero.note;
+document.getElementById('stage1Desc').textContent = CONFIG.stage1.desc;
+document.getElementById('stage2Title').textContent = CONFIG.stage2.title;
+document.getElementById('stage2Desc').textContent = CONFIG.stage2.desc;
+document.getElementById('stage3Title').textContent = CONFIG.stage3.title;
+document.getElementById('stage3Desc').textContent = CONFIG.stage3.desc;
+document.getElementById('phoneCta').textContent = CONFIG.stage3.ctaText;
+document.getElementById('stage4Title').textContent = CONFIG.stage4.title;
+document.getElementById('stage4Desc').textContent = CONFIG.stage4.desc;
+document.getElementById('len30').textContent = CONFIG.stage1.len30;
+document.getElementById('len60').textContent = CONFIG.stage1.len60;
+document.getElementById('footerText').textContent = CONFIG.clientName + ' × ' + CONFIG.footer;
+document.title = CONFIG.clientName + '｜品牌成交系統提案';
+
+// ---------- Ticker ----------
+(function(){
+  const wrap = document.getElementById('ticker');
+  function buildSpans(){
+    return CONFIG.tickerItems.map(it=>{
+      const val = it.staticText ? it.staticText : (it.base.toFixed(it.decimals) + it.unit);
+      return `<span>${it.label} <b data-key="${it.valueId||''}">${val}</b></span>`;
+    }).join('');
+  }
+  wrap.innerHTML = buildSpans() + buildSpans();
+  setInterval(()=>{
+    CONFIG.tickerItems.forEach(it=>{
+      if(it.staticText) return;
+      const v = (it.base + (Math.random()-0.5)*it.range).toFixed(it.decimals);
+      document.querySelectorAll(`b[data-key="${it.valueId}"]`).forEach(el=> el.textContent = v + it.unit);
+    });
+  }, 2200);
+})();
+
+// ---------- Stage 1 ----------
+(function(){
+  const grid = document.getElementById('sloganGrid');
+  CONFIG.stage1.slogans.forEach(s=>{
+    const card = document.createElement('div');
+    card.className = 'slogan-card' + (s.id===state.slogan ? ' selected':'');
+    card.dataset.id = s.id;
+    card.innerHTML = `<span class="badge-selected">已選定</span><h3>${s.title}</h3><p>${s.desc}</p>`;
+    grid.appendChild(card);
+  });
+  grid.addEventListener('click', e=>{
+    const card = e.target.closest('.slogan-card');
+    if(!card) return;
+    grid.querySelectorAll('.slogan-card').forEach(c=>c.classList.remove('selected'));
+    card.classList.add('selected');
+    state.slogan = card.dataset.id;
+  });
+  document.querySelectorAll('.length-toggle button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.length-toggle button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('len30').classList.toggle('show', btn.dataset.len==='30');
+      document.getElementById('len60').classList.toggle('show', btn.dataset.len==='60');
+    });
+  });
+})();
+
+// ---------- Stage 2 ----------
+(function(){
+  const grid = document.getElementById('ipGrid');
+  CONFIG.stage2.roles.forEach(r=>{
+    const card = document.createElement('div');
+    card.className = 'ip-card';
+    card.dataset.role = r.key;
+    card.innerHTML = `
+      <h4>${r.name}</h4>
+      <div class="role-pct">${r.suggest}</div>
+      <p>${r.desc}</p>
+      <div class="freq-toggle">
+        <button data-f="low" class="${r.defaultFreq==='low'?'active':''}">低</button>
+        <button data-f="mid" class="${r.defaultFreq==='mid'?'active':''}">中</button>
+        <button data-f="high" class="${r.defaultFreq==='high'?'active':''}">高</button>
+      </div>`;
+    grid.appendChild(card);
+    card.querySelectorAll('.freq-toggle button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        card.querySelectorAll('.freq-toggle button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        state.ipFreq[r.key] = btn.dataset.f;
+      });
+    });
+  });
+})();
+
+// ---------- Stage 3 ----------
+function renderBlocks(){
+  const list = document.getElementById('blockList');
+  list.innerHTML = '';
+  state.blocks.forEach((b, i)=>{
+    const row = document.createElement('div');
+    row.className = 'block-row' + (b.on ? '' : ' off');
+    row.innerHTML = `
+      <label><input type="checkbox" ${b.on?'checked':''} data-idx="${i}" class="blk-check">${b.name}</label>
+      <div class="block-arrows">
+        <button class="blk-up" data-idx="${i}" ${i===0?'disabled':''}>▲</button>
+        <button class="blk-down" data-idx="${i}" ${i===state.blocks.length-1?'disabled':''}>▼</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.blk-check').forEach(cb=>{
+    cb.addEventListener('change', e=>{ state.blocks[+e.target.dataset.idx].on = e.target.checked; renderBlocks(); renderPhone(); });
+  });
+  list.querySelectorAll('.blk-up').forEach(b=>{
+    b.addEventListener('click', e=>{ const i=+e.target.dataset.idx; if(i>0){[state.blocks[i-1],state.blocks[i]]=[state.blocks[i],state.blocks[i-1]]; renderBlocks(); renderPhone();} });
+  });
+  list.querySelectorAll('.blk-down').forEach(b=>{
+    b.addEventListener('click', e=>{ const i=+e.target.dataset.idx; if(i<state.blocks.length-1){[state.blocks[i+1],state.blocks[i]]=[state.blocks[i],state.blocks[i+1]]; renderBlocks(); renderPhone();} });
+  });
+}
+function renderPhone(){
+  const wrap = document.getElementById('phoneContent');
+  wrap.innerHTML = '';
+  state.blocks.filter(b=>b.on).forEach(b=>{
+    const d = document.createElement('div'); d.className='ph-block'; d.textContent=b.name; wrap.appendChild(d);
+  });
+}
+renderBlocks(); renderPhone();
+
+// ---------- Stage 4 ----------
+function renderPriority(){
+  const pool = document.getElementById('priPool');
+  const ranked = document.getElementById('priRanked');
+  pool.innerHTML=''; ranked.innerHTML='';
+  CONFIG.stage4.pool.forEach(p=>{
+    if(state.priorities.indexOf(p.key)===-1){
+      const el = document.createElement('div'); el.className='pri-item';
+      el.innerHTML = `<span>${p.label}</span>`;
+      el.addEventListener('click', ()=>{ if(state.priorities.length<3){ state.priorities.push(p.key); renderPriority(); } });
+      pool.appendChild(el);
+    }
+  });
+  state.priorities.forEach((key, idx)=>{
+    const p = CONFIG.stage4.pool.find(x=>x.key===key);
+    const el = document.createElement('div'); el.className='pri-item';
+    el.innerHTML = `<span><span class="rank-num">${idx+1}.</span> ${p.label}</span><span style="font-size:11px;color:var(--muted)">移除</span>`;
+    el.addEventListener('click', ()=>{ state.priorities = state.priorities.filter(k=>k!==key); renderPriority(); });
+    ranked.appendChild(el);
+  });
+  if(state.priorities.length===0) ranked.innerHTML = '<div style="font-size:12px;color:var(--muted)">尚未選擇，請從左側點選</div>';
+}
+renderPriority();
+
+// ---------- Stage 5 ----------
+function renderMatrix(){
+  const grid = document.getElementById('matrixGrid');
+  grid.innerHTML = '';
+  state.matrix.forEach((m,i)=>{
+    const row = document.createElement('div'); row.className='matrix-row';
+    row.innerHTML = `<span class="m-label">${m.label}</span><input type="range" min="0" max="30" value="${m.val}" data-idx="${i}" class="m-slider"><span class="m-val">${m.val}%</span>`;
+    grid.appendChild(row);
+  });
+  grid.querySelectorAll('.m-slider').forEach(s=>{
+    s.addEventListener('input', e=>{
+      const i=+e.target.dataset.idx; state.matrix[i].val=+e.target.value;
+      e.target.nextElementSibling.textContent = e.target.value + '%';
+      updateTotal();
+    });
+  });
+  updateTotal();
+}
+function updateTotal(){
+  const total = state.matrix.reduce((s,m)=>s+m.val,0);
+  const el = document.getElementById('totalPct');
+  el.textContent = total + '%';
+  el.className = 't-num ' + (total===100 ? 'ok':'warn');
+}
+renderMatrix();
+
+// ---------- Submit ----------
+document.getElementById('submitBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('submitBtn');
+  const contact = document.getElementById('contactName').value.trim();
+  const note = document.getElementById('clientNote').value.trim();
+  const onBlocks = state.blocks.filter(b=>b.on).map(b=>b.name).join('、');
+  const priList = state.priorities.map((k,i)=>`${i+1}.${CONFIG.stage4.pool.find(p=>p.key===k).label}`).join('　');
+  const matrixTop3 = [...state.matrix].sort((a,b)=>b.val-a.val).slice(0,3).map(m=>`${m.label} ${m.val}%`).join('、');
+  const total = state.matrix.reduce((s,m)=>s+m.val,0);
+  const sloganObj = CONFIG.stage1.slogans.find(s=>s.id===state.slogan);
+  const ipSummary = CONFIG.stage2.roles.map(r=>`${r.name} — ${freqText[state.ipFreq[r.key]]}`).join('　|　');
+
+  const html = `
+    <dt>案件</dt><dd>${CONFIG.clientName}（${CONFIG.caseCode}）${contact ? ' / 填寫人：'+contact.replace(/</g,'&lt;') : ''}</dd>
+    <dt>① 主標語</dt><dd>「${sloganObj.title}」</dd>
+    <dt>② IP 角色出鏡頻率</dt><dd>${ipSummary}</dd>
+    <dt>③ 智慧名片保留區塊（依順序）</dt><dd>${onBlocks || '尚未選擇'}</dd>
+    <dt>④ 經營資源前三優先</dt><dd>${priList || '尚未選擇'}</dd>
+    <dt>⑤ 內容矩陣前三大類</dt><dd>${matrixTop3}（目前總計 ${total}%）</dd>
+    ${note ? `<dt>補充說明</dt><dd>${note.replace(/</g,'&lt;')}</dd>` : ''}
+  `;
+  document.getElementById('summaryContent').innerHTML = html;
+  document.getElementById('summaryPanel').classList.add('show');
+  document.getElementById('summaryPanel').scrollIntoView({behavior:'smooth', block:'center'});
+
+  const statusEl = document.getElementById('saveStatus');
+  const payload = {
+    caseCode: CONFIG.caseCode, clientName: CONFIG.clientName, contact, note,
+    slogan: sloganObj.title, ipFreq: state.ipFreq,
+    blocks: state.blocks.filter(b=>b.on).map(b=>b.name),
+    priorities: state.priorities.map(k=>CONFIG.stage4.pool.find(p=>p.key===k).label),
+    matrix: state.matrix, submittedAt: new Date().toISOString()
+  };
+
+  // 若已設定 GAS 回傳網址，自動送出一份到後端 Google Sheets
+  if(CONFIG.gasEndpoint){
+    btn.disabled = true; statusEl.textContent = '傳送中...';
+    try{
+      await fetch(CONFIG.gasEndpoint, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify(payload)
+      });
+      statusEl.textContent = '已送出，感謝您的回覆';
+    }catch(err){
+      statusEl.textContent = '送出失敗，請改用下方「複製摘要」傳給我們';
+    }finally{
+      btn.disabled = false;
+    }
+  } else {
+    statusEl.textContent = '尚未連接資料回傳，請點擊下方「複製摘要」傳給我們';
+  }
+
+  try{ await window.storage.set('proposal-'+CONFIG.caseCode, JSON.stringify(payload), false); }catch(err){}
+});
+
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  const text = document.getElementById('summaryContent').innerText;
+  navigator.clipboard?.writeText(text).then(()=>{
+    const btn = document.getElementById('copyBtn'); const orig = btn.textContent;
+    btn.textContent = '已複製 ✓'; setTimeout(()=>btn.textContent = orig, 1800);
+  }).catch(()=>{});
+});
+</script>
+</body>
+</html>

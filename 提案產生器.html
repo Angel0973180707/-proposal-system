@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提案產生器｜品牌成交系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6EE; --bg-2:#F1E7D3; --panel:#FFFFFF; --panel-2:#F6EFE1;
+    --line:rgba(42,36,28,0.12); --text:#2A241E; --muted:#7C7166;
+    --amber:#BE7A34; --gold:#A97A28; --teal:#2E8377; --red-warn:#B23B3B;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Noto Sans TC',sans-serif; font-weight:300; line-height:1.6; padding-bottom:140px;}
+  h1,h2,h3{font-family:'Noto Serif TC',serif; font-weight:700;}
+  .mono{font-family:'Space Mono',monospace;}
+
+  header{padding:32px 20px 20px; max-width:880px; margin:0 auto; border-bottom:1px solid var(--line);}
+  header .eyebrow{font-family:'Space Mono',monospace; font-size:11px; color:var(--teal); letter-spacing:0.18em; text-transform:uppercase; margin-bottom:10px;}
+  header h1{font-size:clamp(22px,4vw,30px); background:linear-gradient(120deg,var(--gold),var(--amber)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  header p{color:var(--muted); font-size:13px; margin-top:8px; max-width:560px;}
+
+  .draft-bar{max-width:880px; margin:16px auto 0; padding:0 20px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .draft-bar select, .draft-bar button{
+    background:var(--panel); border:1px solid var(--line); color:var(--text);
+    padding:8px 12px; border-radius:8px; font-size:12.5px; font-family:inherit; cursor:pointer;
+  }
+  .draft-bar button:hover{border-color:var(--teal);}
+  .draft-status{font-size:11.5px; color:var(--muted);}
+
+  main{max-width:880px; margin:0 auto; padding:8px 20px 40px;}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:22px 22px; margin-top:20px;}
+  .panel-title{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
+  .panel-num{font-family:'Space Mono',monospace; color:var(--amber); font-size:12px; border:1px solid var(--amber); border-radius:99px; padding:2px 9px;}
+  .panel h2{font-size:16px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12px; color:var(--muted); margin-bottom:5px;}
+  .field input[type=text], .field textarea, .field select{
+    width:100%; background:var(--bg-2); border:1px solid var(--line); border-radius:8px;
+    padding:9px 12px; color:var(--text); font-family:inherit; font-size:13.5px;
+  }
+  .field textarea{min-height:60px; resize:vertical;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+  @media (max-width:640px){.row2,.row3{grid-template-columns:1fr;}}
+
+  .subcard{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; position:relative;}
+  .subcard .sc-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .sc-tag{font-family:'Space Mono',monospace; font-size:11px; color:var(--gold);}
+  .sc-tools{display:flex; gap:5px;}
+  .sc-tools button{
+    background:var(--bg-2); border:1px solid var(--line); color:var(--muted);
+    width:26px; height:26px; border-radius:6px; cursor:pointer; font-size:12px;
+  }
+  .sc-tools button:hover{color:var(--text); border-color:var(--teal);}
+  .sc-tools button.danger:hover{color:var(--red-warn); border-color:var(--red-warn);}
+
+  .list-add{
+    background:transparent; border:1px dashed var(--line); color:var(--muted);
+    width:100%; padding:10px; border-radius:8px; cursor:pointer; font-size:12.5px; font-family:inherit; margin-top:4px;
+  }
+  .list-add:hover{border-color:var(--amber); color:var(--amber);}
+
+  .inline-check{display:flex; align-items:center; gap:8px; font-size:13px; margin-top:6px;}
+  .inline-check input{accent-color:var(--amber); width:15px; height:15px;}
+
+  .matrix-total{
+    margin-top:10px; display:flex; justify-content:space-between; align-items:center;
+    background:var(--bg-2); border-radius:8px; padding:10px 14px; font-size:13px;
+  }
+  .matrix-total b{font-family:'Space Mono',monospace;}
+  .matrix-total b.ok{color:var(--teal);} .matrix-total b.warn{color:var(--red-warn);}
+
+  .sticky-action{
+    position:fixed; bottom:0; left:0; right:0; background:rgba(250,246,238,0.95);
+    backdrop-filter:blur(8px); border-top:1px solid var(--line); padding:14px 20px; z-index:80;
+  }
+  .sticky-inner{max-width:880px; margin:0 auto; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+  .btn-primary{background:var(--amber); color:#161616; border:none; padding:12px 26px; border-radius:999px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;}
+  .btn-primary:hover{background:var(--gold);}
+  .btn-secondary{background:transparent; border:1px solid var(--teal); color:var(--teal); padding:11px 22px; border-radius:999px; font-size:13px; cursor:pointer; font-family:inherit;}
+  .btn-secondary:hover{background:var(--teal); color:#0E1714;}
+  .gen-status{font-size:12px; color:var(--muted);}
+  /* === GitHub 發布功能 START === */
+  .btn-github{background:var(--teal); color:#0E1714; border:none; padding:12px 26px; border-radius:999px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;}
+  .btn-github:hover{background:#266e64;}
+  .btn-github:disabled{opacity:.5; cursor:wait;}
+  .github-status{font-size:12px; color:var(--muted);}
+  /* === GitHub 發布功能 END === */
+
+  hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">品牌成交系統 · 提案產生器</div>
+  <h1>填一次資料，產生一份客戶專屬互動提案</h1>
+  <p>把不同客戶的品牌內容填入下方欄位，右下角按「產生提案網頁」即可下載一份完整可用的 HTML 提案檔，架構與互動功能與樣板完全一致。</p>
+
+  <details style="margin-top:18px; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:12px 16px;">
+    <summary style="cursor:pointer; font-size:13px; color:var(--amber); font-weight:700;">📋 開始前，先看這裡：要準備什麼資料？產生後怎麼用？（點擊展開）</summary>
+    <div style="margin-top:12px; font-size:12.5px; color:var(--text); line-height:1.8;">
+      <b>① 要填什麼資料</b><br>
+      前置作業建議先跟客戶開一次簡短訪談或看過去的品牌素材，準備好：品牌一句話定位、3種語氣不同的主標語、30秒／60秒品牌介紹文案、品牌可用的3種信任角色（如創辦人/團隊/專家）、智慧名片想保留的功能區塊、經營資源可投入的方向、內容規劃的分類與占比。沒有的欄位可以先填通用預設值，之後跟客戶開會時當場調整即可，不用一次到位。
+      <br><br>
+      <b>② 文案怎麼回填給客戶</b><br>
+      填完表單按「產生提案網頁」，會下載一份獨立的 .html 檔案，就是最終要給客戶看的東西。這個檔案跟這個「產生器」互相獨立——之後不管是否還留著產生器裡的資料，這份下載的檔案本身永遠完整可用。
+      <br><br>
+      <b>③ 怎麼交付給客戶</b><br>
+      不建議直接傳 .html 檔案讓客戶用手機「檔案檢視器」打開（互動按鈕不會動）。建議二選一：
+      <br>· 上傳到您慣用的 GitHub Pages，取得網址後用 LINE 傳連結給客戶，點開即可用手機瀏覽器操作
+      <br>· 提案會議現場用您自己的電腦/平板開啟這個檔案，帶著客戶一起互動勾選
+      <br><br>
+      <b>④ 客戶填完之後資料在哪裡</b><br>
+      若已設定「GAS 回傳網址」，客戶按下「產生我的提案摘要」時資料會自動送進您的 Google Sheets；若沒設定，客戶畫面上仍會顯示摘要，需要客戶手動複製傳給您。
+    </div>
+  </details>
+</header>
+
+<div class="draft-bar">
+  <input type="text" id="adminGasEndpoint" placeholder="後台管理 GAS 網址（留空則僅存在本機瀏覽器）" style="flex:1; min-width:220px; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 12px; border-radius:8px; font-size:12px; font-family:inherit;">
+  <input type="text" id="adminBaseUrl" placeholder="GitHub Pages 網址前綴，例如 angel0973180707.github.io/proposals" style="flex:1; min-width:220px; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 12px; border-radius:8px; font-size:12px; font-family:inherit;">
+  <select id="draftSelect"><option value="">— 載入已儲存的案件 —</option></select>
+  <button id="loadDraftBtn">載入</button>
+  <button id="deleteDraftBtn">刪除此案件</button>
+  <span class="draft-status" id="draftStatus"></span>
+</div>
+
+<div style="max-width:880px; margin:12px auto 0; padding:0 20px;">
+  <details id="caseListDetails" style="background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 16px;">
+    <summary style="cursor:pointer; font-size:12.5px; color:var(--teal);">📂 所有案件與交付網址一覽（點擊展開）</summary>
+    <div id="caseListTable" style="margin-top:10px; font-size:12.5px;"></div>
+  </details>
+</div>
+
+<main>
+
+  <div class="panel">
+    <div class="panel-title"><span class="panel-num">基本</span><h2>案件與GAS回傳設定</h2></div>
+    <div class="row2">
+      <div class="field"><label>案件代號（用於檔名與後端資料識別，例如 ABC-20260701）</label><input type="text" id="caseCode" value="NEWCASE-20260701"></div>
+      <div class="field"><label>客戶 / 品牌名稱</label><input type="text" id="clientName" value="" placeholder="例如：琞鑫興業"></div>
+    </div>
+    <div class="field"><label>GAS 回傳網址（選填，留空則不會自動回傳資料）</label><input type="text" id="gasEndpoint" value="" placeholder="https://script.google.com/macros/s/xxxx/exec"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span class="panel-num">HERO</span><h2>首頁主視覺文字</h2></div>
+    <div class="field"><label>眉標（英文/小標）</label><input type="text" id="heroEyebrow" value="品牌成交系統提案 · 互動版"></div>
+    <div class="field"><label>主標題（可分兩行，換行處請按 Enter）</label><textarea id="heroTitle" placeholder="例如：以科技讀懂自然&#10;以智能守護純粹"></textarea></div>
+    <div class="field"><label>副標說明</label><textarea id="heroSub">這份提案不是要您「看完同意」，而是邀請您在每個關鍵決策點親自選擇。往下滑動，您會在五個階段中做出真實的選擇——最後我們會把您的決定整理成一份摘要。</textarea></div>
+    <div class="field"><label>提示小字</label><input type="text" id="heroNote" value="提示：每個區塊都可以點擊互動，所有選擇會即時反映在畫面上"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span class="panel-num">01</span><h2>品牌定位 — 三句標語</h2></div>
+    <div class="field"><label>階段說明文字</label><input type="text" id="stage1Desc" value="三句標語都符合品牌核心理念，差別在語氣與切入角度。請點選您最希望對外溝通的版本。"></div>
+    <div id="sloganFields"></div>
+    <hr class="sep">
+    <div class="field"><label>30 秒品牌介紹</label><textarea id="len30" placeholder="約100-150字，用於快速口頭/文字介紹品牌，強調定位與差異化"></textarea></div>
+    <div class="field"><label>60 秒品牌介紹</label><textarea id="len60" placeholder="約250-350字，可加入產業痛點、解決方式、品牌承諾等完整脈絡"></textarea></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span class="panel-num">02</span><h2>IP 角色配置</h2></div>
+    <div class="field"><label>階段標題</label><input type="text" id="stage2Title" value="三種信任角色，出鏡頻率由您決定"></div>
+    <div class="field"><label>階段說明</label><input type="text" id="stage2Desc" value="品牌採「去個人化、系統化信任」架構。請為每個角色設定出鏡頻率：低／中／高。"></div>
+    <div id="roleFields"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span class="panel-num">03</span><h2>智慧名片區塊</h2></div>
+    <div class="field"><label>階段標題</label><input type="text" id="stage3Title" value="智慧名片要放哪些區塊？順序怎麼排？"></div>
+    <div class="field"><label>階段說明</label><input type="text" id="stage3Desc" value="勾選您要保留的區塊，並用箭頭調整順序——右側手機畫面會即時更新。"></div>
+    <div class="field"><label>CTA按鈕文字</label><input type="text" id="ctaText" value="加入 LINE 諮詢"></div>
+    <div id="blockFields"></div>
+    <button class="list-add" id="addBlockBtn">＋ 新增區塊</button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span class="panel-num">04</span><h2>經營優先序選項</h2></div>
+    <div class="field"><label>階段標題</label><input type="text" id="stage4Title" value="經營資源，您最想優先投入哪三項？"></div>
+    <div class="field"><label>階段說明</label><input type="text" id="stage4Desc" value="以下方向都重要，但資源有限。請點選您認為前三優先的項目。"></div>
+    <div id="priorityFields"></div>
+    <button class="list-add" id="addPriorityBtn">＋ 新增優先項目</button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span class="panel-num">05</span><h2>內容矩陣分類</h2></div>
+    <div id="matrixFields"></div>
+    <button class="list-add" id="addMatrixBtn">＋ 新增分類</button>
+    <div class="matrix-total">目前配置總計 <b id="matrixTotal" class="mono">100%</b></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span class="panel-num">頁尾</span><h2>頁尾文字</h2></div>
+    <div class="field"><label>頁尾標語（會顯示在「客戶名稱 × 這段文字」）</label><input type="text" id="footerText" value="品牌成交系統提案　|　"></div>
+  </div>
+
+</main>
+
+<div class="sticky-action">
+  <div class="sticky-inner">
+    <button class="btn-secondary" id="saveDraftBtn">儲存此案件草稿</button>
+    <button class="btn-primary" id="generateBtn">產生提案網頁（下載 HTML）</button>
+    <!-- === GitHub 發布功能 START === -->
+    <button class="btn-github" id="publishGithubBtn">一鍵發布到 GitHub Pages</button>
+    <span class="github-status" id="githubStatus"></span>
+    <!-- === GitHub 發布功能 END === -->
+    <span class="gen-status" id="genStatus"></span>
+  </div>
+  <div id="deliveryUrlBar" style="display:none; max-width:880px; margin:8px auto 0; padding:10px 14px; background:var(--panel-2); border:1px solid var(--gold); border-radius:8px; font-size:12.5px; align-items:center; gap:10px; flex-wrap:wrap;">
+    <span style="color:var(--muted);">交付網址（上傳到 GitHub Pages 後即可使用）：</span>
+    <a id="deliveryUrlLink" href="#" target="_blank" style="color:var(--teal); word-break:break-all;"></a>
+    <button id="copyDeliveryUrlBtn" style="background:transparent; border:1px solid var(--teal); color:var(--teal); padding:4px 12px; border-radius:999px; font-size:11.5px; cursor:pointer; font-family:inherit;">複製網址</button>
+  </div>
+</div>
+
+<script>
+/* ---------- 內嵌樣板（前半段 / 後半段），由 CONFIG 物件串接組成完整提案檔 ---------- */
+const TEMPLATE_PREFIX = "<!DOCTYPE html>\n<html lang=\"zh-Hant\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>品牌成交系統提案</title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap\" rel=\"stylesheet\">\n<style>\n  :root{\n    --bg:#FAF6EE; --bg-2:#F1E7D3; --panel:#FFFFFF; --panel-2:#F6EFE1;\n    --line:rgba(42,36,28,0.12); --text:#2A241E; --muted:#7C7166;\n    --amber:#BE7A34; --gold:#A97A28; --teal:#2E8377; --red-warn:#B23B3B;\n  }\n  *{box-sizing:border-box; margin:0; padding:0;}\n  html{scroll-behavior:smooth;}\n  body{background:var(--bg); color:var(--text); font-family:'Noto Sans TC', sans-serif; font-weight:300; line-height:1.7; padding-bottom:120px;}\n  ::selection{background:var(--amber); color:#161616;}\n  h1,h2,h3{font-family:'Noto Serif TC', serif; font-weight:700; letter-spacing:0.02em;}\n  .mono{font-family:'Space Mono', monospace;}\n\n  .ticker-wrap{background:var(--bg-2); border-bottom:1px solid var(--line); overflow:hidden; white-space:nowrap; padding:9px 0;}\n  .ticker{display:inline-flex; gap:48px; padding-left:100%; animation:scroll-left 22s linear infinite; font-family:'Space Mono', monospace; font-size:12px; color:var(--teal); letter-spacing:0.04em;}\n  .ticker span b{color:var(--gold); font-weight:700;}\n  @keyframes scroll-left{0%{transform:translateX(0);} 100%{transform:translateX(-100%);}}\n\n  .hero{padding:64px 24px 48px; max-width:760px; margin:0 auto; text-align:center;}\n  .eyebrow{font-family:'Space Mono', monospace; font-size:11px; color:var(--teal); letter-spacing:0.22em; text-transform:uppercase; margin-bottom:18px;}\n  .hero h1{font-size:clamp(28px, 6vw, 44px); line-height:1.35; background:linear-gradient(120deg, var(--gold), var(--amber) 60%, var(--text)); -webkit-background-clip:text; background-clip:text; color:transparent; margin-bottom:18px; white-space:pre-line;}\n  .hero p{color:var(--muted); font-size:15px; max-width:480px; margin:0 auto;}\n  .hero-note{margin-top:28px; font-size:13px; color:var(--muted); border:1px dashed var(--line); border-radius:10px; padding:14px 18px; display:inline-block;}\n\n  .stage-nav{position:sticky; top:0; z-index:50; background:rgba(250,246,238,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); display:flex; gap:8px; overflow-x:auto; padding:12px 16px;}\n  .stage-nav a{flex:0 0 auto; font-size:12.5px; color:var(--muted); text-decoration:none; padding:7px 14px; border:1px solid var(--line); border-radius:999px; white-space:nowrap; transition:.2s;}\n  .stage-nav a:hover{color:var(--text); border-color:var(--amber);}\n\n  section.stage{max-width:920px; margin:0 auto; padding:64px 24px 16px; border-top:1px solid var(--line);}\n  .stage-head{margin-bottom:32px;}\n  .stage-num{font-family:'Space Mono',monospace; color:var(--amber); font-size:13px; letter-spacing:0.1em;}\n  .stage-head h2{font-size:clamp(22px,4vw,30px); margin-top:6px;}\n  .stage-desc{color:var(--muted); font-size:14px; margin-top:10px; max-width:600px;}\n  .pick-hint{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--teal); margin-top:14px; border:1px solid rgba(95,168,160,0.35); padding:6px 12px; border-radius:999px;}\n\n  .slogan-grid{display:grid; gap:14px; margin-top:24px;}\n  .slogan-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px 22px; cursor:pointer; transition:.2s; position:relative;}\n  .slogan-card:hover{border-color:rgba(193,127,62,0.5);}\n  .slogan-card.selected{border-color:var(--amber); background:linear-gradient(135deg, rgba(193,127,62,0.12), var(--panel));}\n  .slogan-card h3{font-size:18px; font-weight:600; margin-bottom:6px;}\n  .slogan-card p{font-size:13px; color:var(--muted);}\n  .badge-selected{position:absolute; top:14px; right:14px; font-size:11px; background:var(--amber); color:#161616; padding:3px 10px; border-radius:999px; font-weight:700; opacity:0; transform:scale(0.8); transition:.2s;}\n  .slogan-card.selected .badge-selected{opacity:1; transform:scale(1);}\n\n  .length-toggle{display:flex; gap:8px; margin-top:28px;}\n  .length-toggle button{background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:8px 16px; border-radius:999px; font-size:12.5px; cursor:pointer; font-family:inherit;}\n  .length-toggle button.active{background:var(--teal); color:#0E1714; border-color:var(--teal); font-weight:700;}\n  .length-box{margin-top:16px; background:var(--panel-2); border-radius:12px; padding:20px; font-size:14px; color:var(--text); display:none; border-left:3px solid var(--gold);}\n  .length-box.show{display:block;}\n\n  .ip-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:24px;}\n  .ip-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px;}\n  .ip-card h4{font-size:15px; margin-bottom:4px;}\n  .ip-card .role-pct{font-family:'Space Mono',monospace; color:var(--gold); font-size:15px; margin:8px 0;}\n  .ip-card p{font-size:12px; color:var(--muted); margin-bottom:12px; min-height:48px;}\n  .freq-toggle{display:flex; gap:4px;}\n  .freq-toggle button{flex:1; background:var(--bg-2); border:1px solid var(--line); color:var(--muted); font-size:11px; padding:6px 0; cursor:pointer; font-family:inherit; border-radius:6px;}\n  .freq-toggle button.active{background:var(--amber); color:#161616; border-color:var(--amber); font-weight:700;}\n\n  .card-builder{display:grid; grid-template-columns:1.1fr 0.9fr; gap:28px; margin-top:24px; align-items:start;}\n  .block-list{display:flex; flex-direction:column; gap:8px;}\n  .block-row{display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px;}\n  .block-row.off{opacity:0.4;}\n  .block-row label{flex:1; font-size:13.5px; display:flex; align-items:center; gap:10px; cursor:pointer;}\n  .block-row input[type=checkbox]{accent-color:var(--amber); width:16px; height:16px;}\n  .block-arrows{display:flex; gap:4px;}\n  .block-arrows button{background:var(--bg-2); border:1px solid var(--line); color:var(--muted); width:24px; height:24px; border-radius:6px; cursor:pointer; font-size:12px;}\n  .block-arrows button:hover{color:var(--text); border-color:var(--teal);}\n\n  .phone-mock{position:sticky; top:90px; background:var(--bg-2); border:1px solid var(--line); border-radius:32px; padding:14px; max-width:260px; margin:0 auto;}\n  .phone-screen{background:linear-gradient(180deg, #FFFFFF, #F1E7D3); border-radius:22px; padding:14px 12px; min-height:340px; max-height:480px; overflow-y:auto;}\n  .phone-screen .ph-head{text-align:center; font-size:11px; color:var(--gold); letter-spacing:0.1em; margin-bottom:10px; font-family:'Space Mono',monospace;}\n  .ph-block{background:rgba(42,36,28,0.045); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:11.5px; margin-bottom:6px; color:var(--text);}\n  .ph-cta{margin-top:10px; background:var(--amber); color:#161616; text-align:center; border-radius:8px; padding:8px; font-size:12px; font-weight:700;}\n\n  .priority-wrap{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px;}\n  @media (max-width:640px){.priority-wrap{grid-template-columns:1fr;}}\n  .pool, .ranked{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; min-height:220px;}\n  .pool h4, .ranked h4{font-size:13px; color:var(--muted); margin-bottom:12px; font-weight:400;}\n  .pri-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:13px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:.15s;}\n  .pri-item:hover{border-color:var(--teal);}\n  .ranked .pri-item{border-color:var(--gold); background:rgba(217,174,95,0.08);}\n  .pri-item .rank-num{font-family:'Space Mono',monospace; color:var(--gold); font-weight:700;}\n\n  .matrix-grid{display:flex; flex-direction:column; gap:14px; margin-top:24px;}\n  .matrix-row{display:grid; grid-template-columns:110px 1fr 50px; align-items:center; gap:14px;}\n  .matrix-row .m-label{font-size:13px; color:var(--text);}\n  input[type=range]{-webkit-appearance:none; width:100%; height:6px; border-radius:99px; background:var(--bg-2); outline:none;}\n  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--amber); cursor:pointer; border:2px solid var(--bg);}\n\n  .total-readout{margin-top:24px; display:flex; align-items:center; justify-content:space-between; background:var(--panel-2); border-radius:12px; padding:16px 20px;}\n  .total-readout .t-label{font-size:13px; color:var(--muted);}\n  .total-readout .t-num{font-family:'Space Mono',monospace; font-size:24px; font-weight:700;}\n  .t-num.ok{color:var(--teal);} .t-num.warn{color:var(--red-warn);}\n\n  .submit-zone{max-width:920px; margin:64px auto 0; padding:0 24px;}\n  .submit-box{background:linear-gradient(135deg, var(--panel-2), var(--panel)); border:1px solid var(--line); border-radius:18px; padding:32px 28px; text-align:center;}\n  .submit-box h3{font-size:20px; margin-bottom:10px;}\n  .submit-box p{color:var(--muted); font-size:13.5px; margin-bottom:22px;}\n  .btn-primary{background:var(--amber); color:#161616; border:none; padding:13px 32px; border-radius:999px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;}\n  .btn-primary:hover{background:var(--gold);}\n  .btn-primary:disabled{opacity:.5; cursor:wait;}\n  textarea.client-note{width:100%; margin-top:18px; background:var(--bg-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; color:var(--text); font-family:inherit; font-size:13px; min-height:70px; resize:vertical;}\n  input.client-field{width:100%; margin-top:10px; background:var(--bg-2); border:1px solid var(--line); border-radius:10px; padding:10px 14px; color:var(--text); font-family:inherit; font-size:13px;}\n\n  .summary-panel{display:none; margin-top:24px; text-align:left; background:var(--bg-2); border:1px solid var(--gold); border-radius:14px; padding:22px 24px;}\n  .summary-panel.show{display:block;}\n  .summary-panel h4{font-size:14px; color:var(--gold); margin-bottom:14px;}\n  .summary-panel dl{font-size:13px; line-height:1.9;}\n  .summary-panel dt{color:var(--muted); margin-top:10px;}\n  .summary-panel dd{color:var(--text);}\n  .copy-btn{margin-top:18px; background:transparent; border:1px solid var(--teal); color:var(--teal); padding:9px 18px; border-radius:999px; font-size:12.5px; cursor:pointer; font-family:inherit;}\n  .copy-btn:hover{background:var(--teal); color:#0E1714;}\n  .save-status{font-size:11.5px; color:var(--muted); margin-top:10px;}\n\n  footer{text-align:center; color:var(--muted); font-size:11.5px; padding:48px 24px 0;}\n\n  @media (max-width:760px){\n    .ip-grid{grid-template-columns:1fr;}\n    .card-builder{grid-template-columns:1fr;}\n    .phone-mock{position:relative; top:0; max-width:280px;}\n    .matrix-row{grid-template-columns:84px 1fr 42px; gap:10px;}\n  }\n</style>\n</head>\n<body>\n\n<div class=\"ticker-wrap\"><div class=\"ticker\" id=\"ticker\"></div></div>\n\n<div class=\"hero\">\n  <div class=\"eyebrow\" id=\"heroEyebrow\"></div>\n  <h1 id=\"heroTitle\"></h1>\n  <p id=\"heroSub\"></p>\n  <div class=\"hero-note\" id=\"heroNote\"></div>\n</div>\n\n<nav class=\"stage-nav\">\n  <a href=\"#stage1\">01 品牌定位</a>\n  <a href=\"#stage2\">02 IP 角色配置</a>\n  <a href=\"#stage3\">03 智慧名片架構</a>\n  <a href=\"#stage4\">04 經營優先序</a>\n  <a href=\"#stage5\">05 內容矩陣配置</a>\n  <a href=\"#submit\">送出選擇</a>\n</nav>\n\n<section class=\"stage\" id=\"stage1\">\n  <div class=\"stage-head\">\n    <div class=\"stage-num\">STAGE 01</div>\n    <h2>品牌主標語，您選哪一句？</h2>\n    <p class=\"stage-desc\" id=\"stage1Desc\"></p>\n    <div class=\"pick-hint\">👆 點擊卡片即可選定</div>\n  </div>\n  <div class=\"slogan-grid\" id=\"sloganGrid\"></div>\n  <div class=\"length-toggle\">\n    <button class=\"active\" data-len=\"30\">30 秒版本</button>\n    <button data-len=\"60\">60 秒版本</button>\n  </div>\n  <div class=\"length-box show\" id=\"len30\"></div>\n  <div class=\"length-box\" id=\"len60\"></div>\n</section>\n\n<section class=\"stage\" id=\"stage2\">\n  <div class=\"stage-head\">\n    <div class=\"stage-num\">STAGE 02</div>\n    <h2 id=\"stage2Title\"></h2>\n    <p class=\"stage-desc\" id=\"stage2Desc\"></p>\n    <div class=\"pick-hint\">👆 點擊每張卡片下方按鈕調整頻率</div>\n  </div>\n  <div class=\"ip-grid\" id=\"ipGrid\"></div>\n</section>\n\n<section class=\"stage\" id=\"stage3\">\n  <div class=\"stage-head\">\n    <div class=\"stage-num\">STAGE 03</div>\n    <h2 id=\"stage3Title\"></h2>\n    <p class=\"stage-desc\" id=\"stage3Desc\"></p>\n    <div class=\"pick-hint\">👆 勾選 / ▲▼ 排序</div>\n  </div>\n  <div class=\"card-builder\">\n    <div class=\"block-list\" id=\"blockList\"></div>\n    <div class=\"phone-mock\">\n      <div class=\"phone-screen\">\n        <div class=\"ph-head\">智慧名片預覽</div>\n        <div id=\"phoneContent\"></div>\n        <div class=\"ph-cta\" id=\"phoneCta\"></div>\n      </div>\n    </div>\n  </div>\n</section>\n\n<section class=\"stage\" id=\"stage4\">\n  <div class=\"stage-head\">\n    <div class=\"stage-num\">STAGE 04</div>\n    <h2 id=\"stage4Title\"></h2>\n    <p class=\"stage-desc\" id=\"stage4Desc\"></p>\n    <div class=\"pick-hint\">👆 點擊加入優先序，再點一次可移除</div>\n  </div>\n  <div class=\"priority-wrap\">\n    <div class=\"pool\"><h4>所有經營方向</h4><div id=\"priPool\"></div></div>\n    <div class=\"ranked\"><h4>您的前三優先（依點選順序）</h4><div id=\"priRanked\"></div></div>\n  </div>\n</section>\n\n<section class=\"stage\" id=\"stage5\">\n  <div class=\"stage-head\">\n    <div class=\"stage-num\">STAGE 05</div>\n    <h2>一年內容怎麼分配？拉看看比例</h2>\n    <p class=\"stage-desc\">調整滑桿分配各類內容占比，總和需等於 100%。已預填建議配置，歡迎依經營重點調整。</p>\n  </div>\n  <div class=\"matrix-grid\" id=\"matrixGrid\"></div>\n  <div class=\"total-readout\"><span class=\"t-label\">目前總計</span><span class=\"t-num\" id=\"totalPct\">100%</span></div>\n</section>\n\n<div class=\"submit-zone\" id=\"submit\">\n  <div class=\"submit-box\">\n    <h3>確認您的提案選擇</h3>\n    <p>點擊下方按鈕，我們會整理出一份屬於您的決策摘要，方便雙方對齊後續執行方向。</p>\n    <input class=\"client-field\" id=\"contactName\" placeholder=\"您的稱呼 / 公司名稱（選填，方便我們對應紀錄）\">\n    <textarea class=\"client-note\" id=\"clientNote\" placeholder=\"（選填）想補充的想法或顧慮，例如特定區塊的疑慮、預算考量等...\"></textarea>\n    <br>\n    <button class=\"btn-primary\" id=\"submitBtn\">產生我的提案摘要</button>\n    <div class=\"summary-panel\" id=\"summaryPanel\">\n      <h4>★ 您的提案決策摘要</h4>\n      <dl id=\"summaryContent\"></dl>\n      <button class=\"copy-btn\" id=\"copyBtn\">複製摘要文字</button>\n      <div class=\"save-status\" id=\"saveStatus\"></div>\n    </div>\n  </div>\n</div>\n\n<footer id=\"footerText\"></footer>\n\n<script>\n/* ============================================================\n   客戶設定區 START —— 每個新客戶只需要修改這一區塊\n   其餘 HTML / CSS / JS 邏輯為共用樣板，不需異動\n   ============================================================ */\n";
+const TEMPLATE_SUFFIX = "\n/* ============================================================\n   客戶設定區 END\n   ============================================================ */\n\nconst freqText = {low:'低', mid:'中', high:'高'};\nconst state = {\n  slogan: CONFIG.stage1.slogans.find(s=>s.selected)?.id || CONFIG.stage1.slogans[0].id,\n  ipFreq: {},\n  blocks: JSON.parse(JSON.stringify(CONFIG.stage3.blocks)),\n  priorities: [],\n  matrix: JSON.parse(JSON.stringify(CONFIG.matrix)),\n};\nCONFIG.stage2.roles.forEach(r=> state.ipFreq[r.key] = r.defaultFreq);\n\n// ---------- Render static text from CONFIG ----------\ndocument.getElementById('heroEyebrow').textContent = CONFIG.hero.eyebrow;\ndocument.getElementById('heroTitle').textContent = CONFIG.hero.title;\ndocument.getElementById('heroSub').textContent = CONFIG.hero.subtitle;\ndocument.getElementById('heroNote').textContent = CONFIG.hero.note;\ndocument.getElementById('stage1Desc').textContent = CONFIG.stage1.desc;\ndocument.getElementById('stage2Title').textContent = CONFIG.stage2.title;\ndocument.getElementById('stage2Desc').textContent = CONFIG.stage2.desc;\ndocument.getElementById('stage3Title').textContent = CONFIG.stage3.title;\ndocument.getElementById('stage3Desc').textContent = CONFIG.stage3.desc;\ndocument.getElementById('phoneCta').textContent = CONFIG.stage3.ctaText;\ndocument.getElementById('stage4Title').textContent = CONFIG.stage4.title;\ndocument.getElementById('stage4Desc').textContent = CONFIG.stage4.desc;\ndocument.getElementById('len30').textContent = CONFIG.stage1.len30;\ndocument.getElementById('len60').textContent = CONFIG.stage1.len60;\ndocument.getElementById('footerText').textContent = CONFIG.clientName + ' × ' + CONFIG.footer;\ndocument.title = CONFIG.clientName + '｜品牌成交系統提案';\n\n// ---------- Ticker ----------\n(function(){\n  const wrap = document.getElementById('ticker');\n  function buildSpans(){\n    return CONFIG.tickerItems.map(it=>{\n      const val = it.staticText ? it.staticText : (it.base.toFixed(it.decimals) + it.unit);\n      return `<span>${it.label} <b data-key=\"${it.valueId||''}\">${val}</b></span>`;\n    }).join('');\n  }\n  wrap.innerHTML = buildSpans() + buildSpans();\n  setInterval(()=>{\n    CONFIG.tickerItems.forEach(it=>{\n      if(it.staticText) return;\n      const v = (it.base + (Math.random()-0.5)*it.range).toFixed(it.decimals);\n      document.querySelectorAll(`b[data-key=\"${it.valueId}\"]`).forEach(el=> el.textContent = v + it.unit);\n    });\n  }, 2200);\n})();\n\n// ---------- Stage 1 ----------\n(function(){\n  const grid = document.getElementById('sloganGrid');\n  CONFIG.stage1.slogans.forEach(s=>{\n    const card = document.createElement('div');\n    card.className = 'slogan-card' + (s.id===state.slogan ? ' selected':'');\n    card.dataset.id = s.id;\n    card.innerHTML = `<span class=\"badge-selected\">已選定</span><h3>${s.title}</h3><p>${s.desc}</p>`;\n    grid.appendChild(card);\n  });\n  grid.addEventListener('click', e=>{\n    const card = e.target.closest('.slogan-card');\n    if(!card) return;\n    grid.querySelectorAll('.slogan-card').forEach(c=>c.classList.remove('selected'));\n    card.classList.add('selected');\n    state.slogan = card.dataset.id;\n  });\n  document.querySelectorAll('.length-toggle button').forEach(btn=>{\n    btn.addEventListener('click', ()=>{\n      document.querySelectorAll('.length-toggle button').forEach(b=>b.classList.remove('active'));\n      btn.classList.add('active');\n      document.getElementById('len30').classList.toggle('show', btn.dataset.len==='30');\n      document.getElementById('len60').classList.toggle('show', btn.dataset.len==='60');\n    });\n  });\n})();\n\n// ---------- Stage 2 ----------\n(function(){\n  const grid = document.getElementById('ipGrid');\n  CONFIG.stage2.roles.forEach(r=>{\n    const card = document.createElement('div');\n    card.className = 'ip-card';\n    card.dataset.role = r.key;\n    card.innerHTML = `\n      <h4>${r.name}</h4>\n      <div class=\"role-pct\">${r.suggest}</div>\n      <p>${r.desc}</p>\n      <div class=\"freq-toggle\">\n        <button data-f=\"low\" class=\"${r.defaultFreq==='low'?'active':''}\">低</button>\n        <button data-f=\"mid\" class=\"${r.defaultFreq==='mid'?'active':''}\">中</button>\n        <button data-f=\"high\" class=\"${r.defaultFreq==='high'?'active':''}\">高</button>\n      </div>`;\n    grid.appendChild(card);\n    card.querySelectorAll('.freq-toggle button').forEach(btn=>{\n      btn.addEventListener('click', ()=>{\n        card.querySelectorAll('.freq-toggle button').forEach(b=>b.classList.remove('active'));\n        btn.classList.add('active');\n        state.ipFreq[r.key] = btn.dataset.f;\n      });\n    });\n  });\n})();\n\n// ---------- Stage 3 ----------\nfunction renderBlocks(){\n  const list = document.getElementById('blockList');\n  list.innerHTML = '';\n  state.blocks.forEach((b, i)=>{\n    const row = document.createElement('div');\n    row.className = 'block-row' + (b.on ? '' : ' off');\n    row.innerHTML = `\n      <label><input type=\"checkbox\" ${b.on?'checked':''} data-idx=\"${i}\" class=\"blk-check\">${b.name}</label>\n      <div class=\"block-arrows\">\n        <button class=\"blk-up\" data-idx=\"${i}\" ${i===0?'disabled':''}>▲</button>\n        <button class=\"blk-down\" data-idx=\"${i}\" ${i===state.blocks.length-1?'disabled':''}>▼</button>\n      </div>`;\n    list.appendChild(row);\n  });\n  list.querySelectorAll('.blk-check').forEach(cb=>{\n    cb.addEventListener('change', e=>{ state.blocks[+e.target.dataset.idx].on = e.target.checked; renderBlocks(); renderPhone(); });\n  });\n  list.querySelectorAll('.blk-up').forEach(b=>{\n    b.addEventListener('click', e=>{ const i=+e.target.dataset.idx; if(i>0){[state.blocks[i-1],state.blocks[i]]=[state.blocks[i],state.blocks[i-1]]; renderBlocks(); renderPhone();} });\n  });\n  list.querySelectorAll('.blk-down').forEach(b=>{\n    b.addEventListener('click', e=>{ const i=+e.target.dataset.idx; if(i<state.blocks.length-1){[state.blocks[i+1],state.blocks[i]]=[state.blocks[i],state.blocks[i+1]]; renderBlocks(); renderPhone();} });\n  });\n}\nfunction renderPhone(){\n  const wrap = document.getElementById('phoneContent');\n  wrap.innerHTML = '';\n  state.blocks.filter(b=>b.on).forEach(b=>{\n    const d = document.createElement('div'); d.className='ph-block'; d.textContent=b.name; wrap.appendChild(d);\n  });\n}\nrenderBlocks(); renderPhone();\n\n// ---------- Stage 4 ----------\nfunction renderPriority(){\n  const pool = document.getElementById('priPool');\n  const ranked = document.getElementById('priRanked');\n  pool.innerHTML=''; ranked.innerHTML='';\n  CONFIG.stage4.pool.forEach(p=>{\n    if(state.priorities.indexOf(p.key)===-1){\n      const el = document.createElement('div'); el.className='pri-item';\n      el.innerHTML = `<span>${p.label}</span>`;\n      el.addEventListener('click', ()=>{ if(state.priorities.length<3){ state.priorities.push(p.key); renderPriority(); } });\n      pool.appendChild(el);\n    }\n  });\n  state.priorities.forEach((key, idx)=>{\n    const p = CONFIG.stage4.pool.find(x=>x.key===key);\n    const el = document.createElement('div'); el.className='pri-item';\n    el.innerHTML = `<span><span class=\"rank-num\">${idx+1}.</span> ${p.label}</span><span style=\"font-size:11px;color:var(--muted)\">移除</span>`;\n    el.addEventListener('click', ()=>{ state.priorities = state.priorities.filter(k=>k!==key); renderPriority(); });\n    ranked.appendChild(el);\n  });\n  if(state.priorities.length===0) ranked.innerHTML = '<div style=\"font-size:12px;color:var(--muted)\">尚未選擇，請從左側點選</div>';\n}\nrenderPriority();\n\n// ---------- Stage 5 ----------\nfunction renderMatrix(){\n  const grid = document.getElementById('matrixGrid');\n  grid.innerHTML = '';\n  state.matrix.forEach((m,i)=>{\n    const row = document.createElement('div'); row.className='matrix-row';\n    row.innerHTML = `<span class=\"m-label\">${m.label}</span><input type=\"range\" min=\"0\" max=\"30\" value=\"${m.val}\" data-idx=\"${i}\" class=\"m-slider\"><span class=\"m-val\">${m.val}%</span>`;\n    grid.appendChild(row);\n  });\n  grid.querySelectorAll('.m-slider').forEach(s=>{\n    s.addEventListener('input', e=>{\n      const i=+e.target.dataset.idx; state.matrix[i].val=+e.target.value;\n      e.target.nextElementSibling.textContent = e.target.value + '%';\n      updateTotal();\n    });\n  });\n  updateTotal();\n}\nfunction updateTotal(){\n  const total = state.matrix.reduce((s,m)=>s+m.val,0);\n  const el = document.getElementById('totalPct');\n  el.textContent = total + '%';\n  el.className = 't-num ' + (total===100 ? 'ok':'warn');\n}\nrenderMatrix();\n\n// ---------- Submit ----------\ndocument.getElementById('submitBtn').addEventListener('click', async ()=>{\n  const btn = document.getElementById('submitBtn');\n  const contact = document.getElementById('contactName').value.trim();\n  const note = document.getElementById('clientNote').value.trim();\n  const onBlocks = state.blocks.filter(b=>b.on).map(b=>b.name).join('、');\n  const priList = state.priorities.map((k,i)=>`${i+1}.${CONFIG.stage4.pool.find(p=>p.key===k).label}`).join('　');\n  const matrixTop3 = [...state.matrix].sort((a,b)=>b.val-a.val).slice(0,3).map(m=>`${m.label} ${m.val}%`).join('、');\n  const total = state.matrix.reduce((s,m)=>s+m.val,0);\n  const sloganObj = CONFIG.stage1.slogans.find(s=>s.id===state.slogan);\n  const ipSummary = CONFIG.stage2.roles.map(r=>`${r.name} — ${freqText[state.ipFreq[r.key]]}`).join('　|　');\n\n  const html = `\n    <dt>案件</dt><dd>${CONFIG.clientName}（${CONFIG.caseCode}）${contact ? ' / 填寫人：'+contact.replace(/</g,'&lt;') : ''}</dd>\n    <dt>① 主標語</dt><dd>「${sloganObj.title}」</dd>\n    <dt>② IP 角色出鏡頻率</dt><dd>${ipSummary}</dd>\n    <dt>③ 智慧名片保留區塊（依順序）</dt><dd>${onBlocks || '尚未選擇'}</dd>\n    <dt>④ 經營資源前三優先</dt><dd>${priList || '尚未選擇'}</dd>\n    <dt>⑤ 內容矩陣前三大類</dt><dd>${matrixTop3}（目前總計 ${total}%）</dd>\n    ${note ? `<dt>補充說明</dt><dd>${note.replace(/</g,'&lt;')}</dd>` : ''}\n  `;\n  document.getElementById('summaryContent').innerHTML = html;\n  document.getElementById('summaryPanel').classList.add('show');\n  document.getElementById('summaryPanel').scrollIntoView({behavior:'smooth', block:'center'});\n\n  const statusEl = document.getElementById('saveStatus');\n  const payload = {\n    caseCode: CONFIG.caseCode, clientName: CONFIG.clientName, contact, note,\n    slogan: sloganObj.title, ipFreq: state.ipFreq,\n    blocks: state.blocks.filter(b=>b.on).map(b=>b.name),\n    priorities: state.priorities.map(k=>CONFIG.stage4.pool.find(p=>p.key===k).label),\n    matrix: state.matrix, submittedAt: new Date().toISOString()\n  };\n\n  // 若已設定 GAS 回傳網址，自動送出一份到後端 Google Sheets\n  if(CONFIG.gasEndpoint){\n    btn.disabled = true; statusEl.textContent = '傳送中...';\n    try{\n      await fetch(CONFIG.gasEndpoint, {\n        method:'POST', mode:'no-cors',\n        headers:{'Content-Type':'text/plain'},\n        body: JSON.stringify(payload)\n      });\n      statusEl.textContent = '已送出，感謝您的回覆';\n    }catch(err){\n      statusEl.textContent = '送出失敗，請改用下方「複製摘要」傳給我們';\n    }finally{\n      btn.disabled = false;\n    }\n  } else {\n    statusEl.textContent = '尚未連接資料回傳，請點擊下方「複製摘要」傳給我們';\n  }\n\n  try{ await window.storage.set('proposal-'+CONFIG.caseCode, JSON.stringify(payload), false); }catch(err){}\n});\n\ndocument.getElementById('copyBtn').addEventListener('click', ()=>{\n  const text = document.getElementById('summaryContent').innerText;\n  navigator.clipboard?.writeText(text).then(()=>{\n    const btn = document.getElementById('copyBtn'); const orig = btn.textContent;\n    btn.textContent = '已複製 ✓'; setTimeout(()=>btn.textContent = orig, 1800);\n  }).catch(()=>{});\n});\n</script>\n</body>\n</html>\n";
+
+/* ---------- 預設資料 ---------- */
+let sloganData = [
+  {id:"A", title:"", desc:"", selected:true},
+  {id:"B", title:"", desc:"", selected:false},
+  {id:"C", title:"", desc:"", selected:false},
+];
+let roleData = [
+  {key:"system", name:"科技農業視覺", suggest:"建議 高", desc:"", defaultFreq:"high"},
+  {key:"team", name:"研發 / 品質團隊", suggest:"建議 中", desc:"", defaultFreq:"mid"},
+  {key:"expert", name:"外部專家顧問", suggest:"建議 低", desc:"", defaultFreq:"low"},
+];
+let blockData = [
+  {id:"home", name:"首頁", on:true},
+  {id:"brandIntro", name:"品牌介紹", on:true},
+  {id:"brandStory", name:"品牌故事", on:true},
+  {id:"product", name:"產品介紹", on:true},
+  {id:"spirit", name:"企業精神", on:true},
+  {id:"origin", name:"品牌起源", on:true},
+  {id:"map", name:"Google 地圖", on:true},
+  {id:"line", name:"LINE", on:true},
+  {id:"social", name:"社群連結", on:true},
+  {id:"faq", name:"常見問題", on:true},
+  {id:"book", name:"預約諮詢", on:true},
+];
+let priorityData = [
+  {key:"basic", label:"商家基本優化"},
+  {key:"review", label:"評論策略"},
+  {key:"photo", label:"照片策略"},
+  {key:"video", label:"影片策略"},
+  {key:"seo", label:"SEO 策略"},
+];
+let matrixData = [
+  {key:"brandStory", label:"品牌故事", val:15},
+  {key:"knowledge", label:"產品知識", val:15},
+  {key:"culture", label:"企業文化", val:15},
+  {key:"behind", label:"幕後花絮", val:10},
+  {key:"qa", label:"QA問答", val:10},
+  {key:"customer", label:"客戶故事", val:15},
+  {key:"health", label:"健康觀念", val:10},
+  {key:"esg", label:"永續理念", val:10},
+];
+
+function slugify(str){
+  return 'k' + Math.random().toString(36).slice(2,8);
+}
+
+/* ---------- Render: Stage1 slogans ---------- */
+function renderSlogans(){
+  const wrap = document.getElementById('sloganFields');
+  wrap.innerHTML = '';
+  sloganData.forEach((s,i)=>{
+    const card = document.createElement('div');
+    card.className = 'subcard';
+    card.innerHTML = `
+      <div class="sc-head"><span class="sc-tag">標語 ${s.id}</span>
+        <label class="inline-check"><input type="checkbox" ${s.selected?'checked':''} class="slogan-default" data-i="${i}"> 預設選中</label>
+      </div>
+      <div class="field"><label>標語文字</label><input type="text" class="slogan-title" data-i="${i}" value="${escAttr(s.title)}" placeholder="這句標語想傳達的核心賣點"></div>
+      <div class="field"><label>說明文字</label><input type="text" class="slogan-desc" data-i="${i}" value="${escAttr(s.desc)}" placeholder="這個版本適合用在什麼情境/素材"></div>`;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('.slogan-title').forEach(el=> el.addEventListener('input', e=> sloganData[+e.target.dataset.i].title = e.target.value));
+  wrap.querySelectorAll('.slogan-desc').forEach(el=> el.addEventListener('input', e=> sloganData[+e.target.dataset.i].desc = e.target.value));
+  wrap.querySelectorAll('.slogan-default').forEach(el=> el.addEventListener('change', e=>{
+    sloganData.forEach(s=>s.selected=false);
+    sloganData[+e.target.dataset.i].selected = true;
+    renderSlogans();
+  }));
+}
+
+/* ---------- Render: Stage2 roles ---------- */
+function renderRoles(){
+  const wrap = document.getElementById('roleFields');
+  wrap.innerHTML = '';
+  roleData.forEach((r,i)=>{
+    const card = document.createElement('div');
+    card.className = 'subcard';
+    card.innerHTML = `
+      <div class="sc-head"><span class="sc-tag">角色 ${i+1}</span></div>
+      <div class="row2">
+        <div class="field"><label>角色名稱</label><input type="text" class="role-name" data-i="${i}" value="${escAttr(r.name)}"></div>
+        <div class="field"><label>建議頻率標示文字</label><input type="text" class="role-suggest" data-i="${i}" value="${escAttr(r.suggest)}"></div>
+      </div>
+      <div class="field"><label>角色說明</label><input type="text" class="role-desc" data-i="${i}" value="${escAttr(r.desc)}" placeholder="這個角色負責傳達什麼，風險/信任特性為何"></div>
+      <div class="field"><label>預設出鏡頻率</label>
+        <select class="role-freq" data-i="${i}">
+          <option value="low" ${r.defaultFreq==='low'?'selected':''}>低</option>
+          <option value="mid" ${r.defaultFreq==='mid'?'selected':''}>中</option>
+          <option value="high" ${r.defaultFreq==='high'?'selected':''}>高</option>
+        </select>
+      </div>`;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('.role-name').forEach(el=> el.addEventListener('input', e=> roleData[+e.target.dataset.i].name = e.target.value));
+  wrap.querySelectorAll('.role-suggest').forEach(el=> el.addEventListener('input', e=> roleData[+e.target.dataset.i].suggest = e.target.value));
+  wrap.querySelectorAll('.role-desc').forEach(el=> el.addEventListener('input', e=> roleData[+e.target.dataset.i].desc = e.target.value));
+  wrap.querySelectorAll('.role-freq').forEach(el=> el.addEventListener('change', e=> roleData[+e.target.dataset.i].defaultFreq = e.target.value));
+}
+
+/* ---------- Render: Stage3 blocks ---------- */
+function renderBlocks(){
+  const wrap = document.getElementById('blockFields');
+  wrap.innerHTML = '';
+  blockData.forEach((b,i)=>{
+    const card = document.createElement('div');
+    card.className = 'subcard';
+    card.innerHTML = `
+      <div class="sc-head"><span class="sc-tag">區塊 ${i+1}</span>
+        <div class="sc-tools">
+          <button class="blk-up" data-i="${i}" ${i===0?'disabled':''}>▲</button>
+          <button class="blk-down" data-i="${i}" ${i===blockData.length-1?'disabled':''}>▼</button>
+          <button class="blk-del danger" data-i="${i}">✕</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>區塊名稱</label><input type="text" class="blk-name" data-i="${i}" value="${escAttr(b.name)}"></div>
+        <label class="inline-check" style="margin-top:26px;"><input type="checkbox" class="blk-on" data-i="${i}" ${b.on?'checked':''}> 預設勾選（顯示於名片）</label>
+      </div>`;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('.blk-name').forEach(el=> el.addEventListener('input', e=> blockData[+e.target.dataset.i].name = e.target.value));
+  wrap.querySelectorAll('.blk-on').forEach(el=> el.addEventListener('change', e=> blockData[+e.target.dataset.i].on = e.target.checked));
+  wrap.querySelectorAll('.blk-up').forEach(el=> el.addEventListener('click', e=>{
+    const i=+e.target.dataset.i; if(i>0){[blockData[i-1],blockData[i]]=[blockData[i],blockData[i-1]]; renderBlocks();}
+  }));
+  wrap.querySelectorAll('.blk-down').forEach(el=> el.addEventListener('click', e=>{
+    const i=+e.target.dataset.i; if(i<blockData.length-1){[blockData[i+1],blockData[i]]=[blockData[i],blockData[i+1]]; renderBlocks();}
+  }));
+  wrap.querySelectorAll('.blk-del').forEach(el=> el.addEventListener('click', e=>{
+    blockData.splice(+e.target.dataset.i,1); renderBlocks();
+  }));
+}
+document.getElementById('addBlockBtn').addEventListener('click', ()=>{
+  blockData.push({id:slugify(), name:'新區塊', on:true}); renderBlocks();
+});
+
+/* ---------- Render: Stage4 priorities ---------- */
+function renderPriorities(){
+  const wrap = document.getElementById('priorityFields');
+  wrap.innerHTML = '';
+  priorityData.forEach((p,i)=>{
+    const card = document.createElement('div');
+    card.className = 'subcard';
+    card.innerHTML = `
+      <div class="sc-head"><span class="sc-tag">項目 ${i+1}</span>
+        <div class="sc-tools"><button class="pri-del danger" data-i="${i}">✕</button></div>
+      </div>
+      <div class="field"><label>項目名稱</label><input type="text" class="pri-label" data-i="${i}" value="${escAttr(p.label)}"></div>`;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('.pri-label').forEach(el=> el.addEventListener('input', e=> priorityData[+e.target.dataset.i].label = e.target.value));
+  wrap.querySelectorAll('.pri-del').forEach(el=> el.addEventListener('click', e=>{ priorityData.splice(+e.target.dataset.i,1); renderPriorities(); }));
+}
+document.getElementById('addPriorityBtn').addEventListener('click', ()=>{
+  priorityData.push({key:slugify(), label:'新項目'}); renderPriorities();
+});
+
+/* ---------- Render: Stage5 matrix ---------- */
+function renderMatrix(){
+  const wrap = document.getElementById('matrixFields');
+  wrap.innerHTML = '';
+  matrixData.forEach((m,i)=>{
+    const card = document.createElement('div');
+    card.className = 'subcard';
+    card.innerHTML = `
+      <div class="sc-head"><span class="sc-tag">分類 ${i+1}</span>
+        <div class="sc-tools"><button class="mx-del danger" data-i="${i}">✕</button></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>分類名稱</label><input type="text" class="mx-label" data-i="${i}" value="${escAttr(m.label)}"></div>
+        <div class="field"><label>建議占比 %</label><input type="text" class="mx-val" data-i="${i}" value="${m.val}"></div>
+      </div>`;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('.mx-label').forEach(el=> el.addEventListener('input', e=> matrixData[+e.target.dataset.i].label = e.target.value));
+  wrap.querySelectorAll('.mx-val').forEach(el=> el.addEventListener('input', e=>{
+    matrixData[+e.target.dataset.i].val = parseInt(e.target.value)||0; updateMatrixTotal();
+  }));
+  wrap.querySelectorAll('.mx-del').forEach(el=> el.addEventListener('click', e=>{ matrixData.splice(+e.target.dataset.i,1); renderMatrix(); updateMatrixTotal(); }));
+  updateMatrixTotal();
+}
+function updateMatrixTotal(){
+  const total = matrixData.reduce((s,m)=>s+(m.val||0),0);
+  const el = document.getElementById('matrixTotal');
+  el.textContent = total + '%';
+  el.className = 'mono ' + (total===100?'ok':'warn');
+}
+document.getElementById('addMatrixBtn').addEventListener('click', ()=>{
+  matrixData.push({key:slugify(), label:'新分類', val:5}); renderMatrix();
+});
+
+function escAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+
+renderSlogans(); renderRoles(); renderBlocks(); renderPriorities(); renderMatrix();
+
+/* ---------- 組成 CONFIG 並產生完整 HTML ---------- */
+function buildConfig(){
+  return {
+    caseCode: document.getElementById('caseCode').value.trim() || 'CASE-' + Date.now(),
+    clientName: document.getElementById('clientName').value.trim(),
+    gasEndpoint: document.getElementById('gasEndpoint').value.trim(),
+    tickerItems: [
+      {label:"環控溫度", valueId:"temp", base:18.2, range:1.6, unit:"°C", decimals:1},
+      {label:"濕度", valueId:"hum", base:74, range:5, unit:"%", decimals:0},
+      {label:"活性指數", valueId:"act", base:89, range:6, unit:"", decimals:0},
+      {label:"監測節點", staticText:"14 / 14 在線"},
+      {label:"品質追溯", staticText:"已啟用"},
+    ],
+    hero: {
+      eyebrow: document.getElementById('heroEyebrow').value,
+      title: document.getElementById('heroTitle').value,
+      subtitle: document.getElementById('heroSub').value,
+      note: document.getElementById('heroNote').value,
+    },
+    stage1: {
+      desc: document.getElementById('stage1Desc').value,
+      slogans: sloganData,
+      len30: document.getElementById('len30').value,
+      len60: document.getElementById('len60').value,
+    },
+    stage2: {
+      title: document.getElementById('stage2Title').value,
+      desc: document.getElementById('stage2Desc').value,
+      roles: roleData,
+    },
+    stage3: {
+      title: document.getElementById('stage3Title').value,
+      desc: document.getElementById('stage3Desc').value,
+      ctaText: document.getElementById('ctaText').value,
+      blocks: blockData,
+    },
+    stage4: {
+      title: document.getElementById('stage4Title').value,
+      desc: document.getElementById('stage4Desc').value,
+      pool: priorityData,
+    },
+    matrix: matrixData,
+    footer: document.getElementById('footerText').value,
+  };
+}
+
+function generateHtml(cfg){
+  const configBlock = "const CONFIG = " + JSON.stringify(cfg, null, 2) + ";\n";
+  return TEMPLATE_PREFIX + configBlock + TEMPLATE_SUFFIX;
+}
+
+function getAdminBaseUrl(){
+  return document.getElementById('adminBaseUrl').value.trim();
+}
+function computeDeliveryUrl(caseCode){
+  let base = getAdminBaseUrl();
+  if(!base) return '';
+  base = base.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+  return 'https://' + base + '/' + caseCode + '.html';
+}
+
+document.getElementById('generateBtn').addEventListener('click', ()=>{
+  const cfg = buildConfig();
+  if(!cfg.clientName){ document.getElementById('genStatus').textContent = '請先填寫客戶/品牌名稱'; return; }
+  const html = generateHtml(cfg);
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (cfg.caseCode || 'proposal') + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('genStatus').textContent = '已產生並下載：' + a.download;
+
+  const deliveryUrl = computeDeliveryUrl(cfg.caseCode);
+  const bar = document.getElementById('deliveryUrlBar');
+  if(deliveryUrl){
+    document.getElementById('deliveryUrlLink').textContent = deliveryUrl;
+    document.getElementById('deliveryUrlLink').href = deliveryUrl;
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+
+  // 若有設定 GAS，順便把交付網址一併存進案件紀錄，方便之後在「案件總覽」查詢
+  const gas = getAdminGas();
+  if(gas){
+    fetch(gas, {
+      method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'saveCase', caseCode: cfg.caseCode, clientName: cfg.clientName, config: cfg, deliveryUrl })
+    }).then(()=> setTimeout(renderCaseListTable, 800)).catch(()=>{});
+  }
+});
+
+// === GitHub 發布功能 START ===
+document.getElementById('publishGithubBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('publishGithubBtn');
+  const statusEl = document.getElementById('githubStatus');
+  const gas = getAdminGas();
+
+  if(!gas){
+    statusEl.textContent = '請先填寫「後台管理 GAS 網址」才能發布';
+    return;
+  }
+
+  const cfg = buildConfig();
+  if(!cfg.clientName){ statusEl.textContent = '請先填寫客戶/品牌名稱'; return; }
+
+  const html = generateHtml(cfg);
+  btn.disabled = true;
+  btn.textContent = '發布中...';
+  statusEl.textContent = '';
+
+  try{
+    const resp = await fetch(gas, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'publishToGithub', caseCode: cfg.caseCode, htmlContent: html })
+    });
+    const result = await resp.json();
+
+    if(result.status === 'ok'){
+      statusEl.textContent = '✓ 已發布！';
+      // 更新畫面上的交付網址列為真實已發布的網址
+      const bar = document.getElementById('deliveryUrlBar');
+      document.getElementById('deliveryUrlLink').textContent = result.url;
+      document.getElementById('deliveryUrlLink').href = result.url;
+      bar.style.display = 'flex';
+      // 順便把發布網址存回雲端案件紀錄
+      fetch(gas, {
+        method: 'POST', mode: 'no-cors', headers: {'Content-Type':'text/plain'},
+        body: JSON.stringify({ action:'saveCase', caseCode: cfg.caseCode, clientName: cfg.clientName, config: cfg, deliveryUrl: result.url })
+      }).catch(()=>{});
+    } else {
+      statusEl.textContent = '發布失敗：' + (result.message || '未知錯誤');
+    }
+  }catch(err){
+    // 若 CORS 擋住，引導用戶確認 GAS endpoint 設定
+    statusEl.textContent = '發布失敗：' + err.message + '（若持續出錯，請確認 GAS 網址有正確設定 CORS，或改用 nginx 代理網址）';
+  }finally{
+    btn.disabled = false;
+    btn.textContent = '一鍵發布到 GitHub Pages';
+  }
+});
+// === GitHub 發布功能 END ===
+
+document.getElementById('copyDeliveryUrlBtn').addEventListener('click', ()=>{
+  const text = document.getElementById('deliveryUrlLink').textContent;
+  navigator.clipboard?.writeText(text).then(()=>{
+    const btn = document.getElementById('copyDeliveryUrlBtn'); const orig = btn.textContent;
+    btn.textContent = '已複製 ✓'; setTimeout(()=>btn.textContent = orig, 1600);
+  }).catch(()=>{});
+});
+
+/* ---------- 草稿儲存 / 載入 ----------
+   若填寫了「後台管理 GAS 網址」，走 Google Sheets 雲端儲存（跨裝置共用）
+   GET 請求用 JSONP 方式讀取，避開瀏覽器 CORS 限制；POST 寫入用 no-cors 送出即可
+   若未填寫，退回瀏覽器本機 window.storage（僅限同一裝置/瀏覽器） */
+
+function jsonp(url){
+  return new Promise((resolve, reject)=>{
+    const cbName = 'jsonpcb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    const cleanup = ()=>{ delete window[cbName]; script.remove(); };
+    window[cbName] = (data)=>{ cleanup(); resolve(data); };
+    script.onerror = ()=>{ cleanup(); reject(new Error('JSONP 讀取失敗')); };
+    script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    document.body.appendChild(script);
+  });
+}
+
+function getAdminGas(){
+  return document.getElementById('adminGasEndpoint').value.trim();
+}
+
+async function refreshDraftList(){
+  const sel = document.getElementById('draftSelect');
+  sel.innerHTML = '<option value="">— 載入已儲存的案件 —</option>';
+  const gas = getAdminGas();
+
+  if(gas){
+    try{
+      const res = await jsonp(gas + '?action=listCases');
+      (res.cases || []).forEach(c=>{
+        const opt = document.createElement('option');
+        opt.value = c.caseCode; opt.textContent = c.clientName ? `${c.caseCode}（${c.clientName}）` : c.caseCode;
+        sel.appendChild(opt);
+      });
+    }catch(err){
+      document.getElementById('draftStatus').textContent = '雲端案件列表讀取失敗，請確認 GAS 網址是否正確';
+    }
+    return;
+  }
+
+  try{
+    const res = await window.storage.list('proposal-draft:', false);
+    (res?.keys || []).forEach(k=>{
+      const code = k.replace('proposal-draft:', '');
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = code + '（本機）';
+      sel.appendChild(opt);
+    });
+  }catch(err){ /* 尚無草稿 */ }
+}
+
+document.getElementById('saveDraftBtn').addEventListener('click', async ()=>{
+  const cfg = buildConfig();
+  const statusEl = document.getElementById('draftStatus');
+  const gas = getAdminGas();
+
+  if(gas){
+    try{
+      await fetch(gas, {
+        method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ action:'saveCase', caseCode: cfg.caseCode, clientName: cfg.clientName, config: cfg, deliveryUrl: computeDeliveryUrl(cfg.caseCode) })
+      });
+      statusEl.textContent = '已儲存至雲端：' + cfg.caseCode;
+      setTimeout(()=>{ refreshDraftList(); renderCaseListTable(); }, 800);
+    }catch(err){
+      statusEl.textContent = '雲端儲存失敗，請確認 GAS 網址';
+    }
+    return;
+  }
+
+  try{
+    await window.storage.set('proposal-draft:' + cfg.caseCode, JSON.stringify(cfg), false);
+    statusEl.textContent = '已儲存草稿（僅本機）：' + cfg.caseCode;
+    refreshDraftList();
+  }catch(err){
+    statusEl.textContent = '儲存失敗，請改用「產生提案網頁」直接下載保存';
+  }
+});
+
+document.getElementById('loadDraftBtn').addEventListener('click', async ()=>{
+  const key = document.getElementById('draftSelect').value;
+  if(!key) return;
+  const statusEl = document.getElementById('draftStatus');
+  const gas = getAdminGas();
+
+  if(gas){
+    try{
+      const res = await jsonp(gas + '?action=loadCase&caseCode=' + encodeURIComponent(key));
+      if(res.case){
+        loadConfigIntoForm(res.case);
+        statusEl.textContent = '已從雲端載入：' + key;
+      }else{
+        statusEl.textContent = '找不到此案件';
+      }
+    }catch(err){
+      statusEl.textContent = '雲端載入失敗';
+    }
+    return;
+  }
+
+  try{
+    const res = await window.storage.get(key, false);
+    const cfg = JSON.parse(res.value);
+    loadConfigIntoForm(cfg);
+    statusEl.textContent = '已載入：' + cfg.caseCode;
+  }catch(err){
+    statusEl.textContent = '載入失敗';
+  }
+});
+
+document.getElementById('deleteDraftBtn').addEventListener('click', async ()=>{
+  const key = document.getElementById('draftSelect').value;
+  if(!key) return;
+  const statusEl = document.getElementById('draftStatus');
+  const gas = getAdminGas();
+
+  if(gas){
+    try{
+      await fetch(gas, {
+        method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ action:'deleteCase', caseCode: key })
+      });
+      statusEl.textContent = '已從雲端刪除';
+      setTimeout(refreshDraftList, 800);
+    }catch(err){
+      statusEl.textContent = '雲端刪除失敗';
+    }
+    return;
+  }
+
+  try{
+    await window.storage.delete(key, false);
+    statusEl.textContent = '已刪除';
+    refreshDraftList();
+  }catch(err){
+    statusEl.textContent = '刪除失敗';
+  }
+});
+
+document.getElementById('adminGasEndpoint').addEventListener('change', async (e)=>{
+  try{ await window.storage.set('admin-gas-endpoint', e.target.value.trim(), false); }catch(err){}
+  refreshDraftList();
+  renderCaseListTable();
+});
+
+document.getElementById('adminBaseUrl').addEventListener('change', async (e)=>{
+  try{ await window.storage.set('admin-base-url', e.target.value.trim(), false); }catch(err){}
+});
+
+async function renderCaseListTable(){
+  const wrap = document.getElementById('caseListTable');
+  const gas = getAdminGas();
+  if(!gas){
+    wrap.innerHTML = '<div style="color:var(--muted);">尚未設定「後台管理 GAS 網址」，無法顯示雲端案件總覽。</div>';
+    return;
+  }
+  wrap.innerHTML = '<div style="color:var(--muted);">讀取中...</div>';
+  try{
+    const res = await jsonp(gas + '?action=listCases');
+    const cases = res.cases || [];
+    if(cases.length === 0){
+      wrap.innerHTML = '<div style="color:var(--muted);">尚無已儲存的案件。</div>';
+      return;
+    }
+    wrap.innerHTML = cases.map(c=>{
+      const urlPart = c.deliveryUrl
+        ? `<a href="${c.deliveryUrl}" target="_blank" style="color:var(--teal); word-break:break-all;">${c.deliveryUrl}</a>`
+        : '<span style="color:var(--muted);">尚未產生交付網址</span>';
+      return `<div style="padding:8px 0; border-bottom:1px solid var(--line);">
+        <b>${c.clientName || '(未命名)'}</b> <span class="mono" style="color:var(--muted);">${c.caseCode}</span><br>
+        ${urlPart}
+      </div>`;
+    }).join('');
+  }catch(err){
+    wrap.innerHTML = '<div style="color:var(--red-warn);">讀取失敗，請確認 GAS 網址是否正確</div>';
+  }
+}
+
+document.getElementById('caseListDetails').addEventListener('toggle', (e)=>{
+  if(e.target.open) renderCaseListTable();
+});
+
+function loadConfigIntoForm(cfg){
+  document.getElementById('caseCode').value = cfg.caseCode || '';
+  document.getElementById('clientName').value = cfg.clientName || '';
+  document.getElementById('gasEndpoint').value = cfg.gasEndpoint || '';
+  document.getElementById('heroEyebrow').value = cfg.hero?.eyebrow || '';
+  document.getElementById('heroTitle').value = cfg.hero?.title || '';
+  document.getElementById('heroSub').value = cfg.hero?.subtitle || '';
+  document.getElementById('heroNote').value = cfg.hero?.note || '';
+  document.getElementById('stage1Desc').value = cfg.stage1?.desc || '';
+  document.getElementById('len30').value = cfg.stage1?.len30 || '';
+  document.getElementById('len60').value = cfg.stage1?.len60 || '';
+  sloganData = cfg.stage1?.slogans || sloganData;
+  document.getElementById('stage2Title').value = cfg.stage2?.title || '';
+  document.getElementById('stage2Desc').value = cfg.stage2?.desc || '';
+  roleData = cfg.stage2?.roles || roleData;
+  document.getElementById('stage3Title').value = cfg.stage3?.title || '';
+  document.getElementById('stage3Desc').value = cfg.stage3?.desc || '';
+  document.getElementById('ctaText').value = cfg.stage3?.ctaText || '';
+  blockData = cfg.stage3?.blocks || blockData;
+  document.getElementById('stage4Title').value = cfg.stage4?.title || '';
+  document.getElementById('stage4Desc').value = cfg.stage4?.desc || '';
+  priorityData = cfg.stage4?.pool || priorityData;
+  matrixData = cfg.matrix || matrixData;
+  document.getElementById('footerText').value = cfg.footer || '';
+  renderSlogans(); renderRoles(); renderBlocks(); renderPriorities(); renderMatrix();
+}
+
+(async ()=>{
+  try{
+    const res = await window.storage.get('admin-gas-endpoint', false);
+    if(res && res.value) document.getElementById('adminGasEndpoint').value = res.value;
+  }catch(err){ /* 尚未設定過 */ }
+  try{
+    const res2 = await window.storage.get('admin-base-url', false);
+    if(res2 && res2.value) document.getElementById('adminBaseUrl').value = res2.value;
+  }catch(err){ /* 尚未設定過 */ }
+  refreshDraftList();
+})();
+</script>
+</body>
+</html>
