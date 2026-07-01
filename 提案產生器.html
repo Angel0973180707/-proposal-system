@@ -576,8 +576,11 @@ function generateHtml(cfg){
   return TEMPLATE_PREFIX + configBlock + TEMPLATE_SUFFIX;
 }
 
+const GAS_DEFAULT     = 'https://script.google.com/macros/s/AKfycbxuvn0CTiQ42qBUkU_tFA4X5GnzsOAOuMSfw304nRtjTpFzmg56MD3-EiUKHcJo9_p_BQ/exec';
+const BASE_URL_DEFAULT = 'angel0973180707.github.io/-proposal-system';
+
 function getAdminBaseUrl(){
-  return document.getElementById('adminBaseUrl').value.trim();
+  return document.getElementById('adminBaseUrl').value.trim() || BASE_URL_DEFAULT;
 }
 function computeDeliveryUrl(caseCode){
   let base = getAdminBaseUrl();
@@ -652,7 +655,7 @@ function jsonp(url){
 }
 
 function getAdminGas(){
-  return document.getElementById('adminGasEndpoint').value.trim();
+  return document.getElementById('adminGasEndpoint').value.trim() || GAS_DEFAULT;
 }
 
 async function refreshDraftList(){
@@ -846,12 +849,12 @@ function loadConfigIntoForm(cfg){
 (async ()=>{
   try{
     const res = await window.storage.get('admin-gas-endpoint', false);
-    if(res && res.value) document.getElementById('adminGasEndpoint').value = res.value;
-  }catch(err){ /* 尚未設定過 */ }
+    document.getElementById('adminGasEndpoint').value = (res && res.value) ? res.value : GAS_DEFAULT;
+  }catch(err){ document.getElementById('adminGasEndpoint').value = GAS_DEFAULT; }
   try{
     const res2 = await window.storage.get('admin-base-url', false);
-    if(res2 && res2.value) document.getElementById('adminBaseUrl').value = res2.value;
-  }catch(err){ /* 尚未設定過 */ }
+    document.getElementById('adminBaseUrl').value = (res2 && res2.value) ? res2.value : BASE_URL_DEFAULT;
+  }catch(err){ document.getElementById('adminBaseUrl').value = BASE_URL_DEFAULT; }
   refreshDraftList();
 })();
 </script>
