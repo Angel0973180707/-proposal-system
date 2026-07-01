@@ -30,7 +30,8 @@ const CASES_SHEET = "cases";
 function setupHeaders() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  const subSheet = ss.getSheetByName(SUBMISSIONS_SHEET);
+  let subSheet = ss.getSheetByName(SUBMISSIONS_SHEET);
+  if (!subSheet) subSheet = ss.insertSheet(SUBMISSIONS_SHEET);
   subSheet.getRange(1, 1, 1, 10).setValues([[
     "送出時間", "案件代號", "客戶名稱", "填寫人", "主標語",
     "IP頻率設定", "智慧名片保留區塊", "經營前三優先",
@@ -38,7 +39,8 @@ function setupHeaders() {
   ]]);
   subSheet.getRange(1, 1, 1, 10).setFontWeight("bold");
 
-  const caseSheet = ss.getSheetByName(CASES_SHEET);
+  let caseSheet = ss.getSheetByName(CASES_SHEET);
+  if (!caseSheet) caseSheet = ss.insertSheet(CASES_SHEET);
   caseSheet.getRange(1, 1, 1, 5).setValues([[
     "案件代號", "客戶名稱", "設定內容(JSON)", "更新時間", "交付網址"
   ]]);

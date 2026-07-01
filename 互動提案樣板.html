@@ -9,9 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#FAF6EE; --bg-2:#F1E7D3; --panel:#FFFFFF; --panel-2:#F6EFE1;
-    --line:rgba(42,36,28,0.12); --text:#2A241E; --muted:#7C7166;
-    --amber:#BE7A34; --gold:#A97A28; --teal:#2E8377; --red-warn:#B23B3B;
+    --bg:#14110E; --bg-2:#0C0A08; --panel:#1E1B17; --panel-2:#262119;
+    --line:rgba(232,220,196,0.12); --text:#F3EEE4; --muted:#9A9184;
+    --amber:#C8923F; --gold:#E0B562; --teal:#4F9C92; --red-warn:#C16464;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{scroll-behavior:smooth;}
@@ -31,7 +31,7 @@
   .hero p{color:var(--muted); font-size:15px; max-width:480px; margin:0 auto;}
   .hero-note{margin-top:28px; font-size:13px; color:var(--muted); border:1px dashed var(--line); border-radius:10px; padding:14px 18px; display:inline-block;}
 
-  .stage-nav{position:sticky; top:0; z-index:50; background:rgba(250,246,238,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); display:flex; gap:8px; overflow-x:auto; padding:12px 16px;}
+  .stage-nav{position:sticky; top:0; z-index:50; background:rgba(12,10,8,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); display:flex; gap:8px; overflow-x:auto; padding:12px 16px;}
   .stage-nav a{flex:0 0 auto; font-size:12.5px; color:var(--muted); text-decoration:none; padding:7px 14px; border:1px solid var(--line); border-radius:999px; white-space:nowrap; transition:.2s;}
   .stage-nav a:hover{color:var(--text); border-color:var(--amber);}
 
@@ -77,9 +77,9 @@
   .block-arrows button:hover{color:var(--text); border-color:var(--teal);}
 
   .phone-mock{position:sticky; top:90px; background:var(--bg-2); border:1px solid var(--line); border-radius:32px; padding:14px; max-width:260px; margin:0 auto;}
-  .phone-screen{background:linear-gradient(180deg, #FFFFFF, #F1E7D3); border-radius:22px; padding:14px 12px; min-height:340px; max-height:480px; overflow-y:auto;}
+  .phone-screen{background:linear-gradient(180deg, #1E1B17, #14110E); border-radius:22px; padding:14px 12px; min-height:340px; max-height:480px; overflow-y:auto;}
   .phone-screen .ph-head{text-align:center; font-size:11px; color:var(--gold); letter-spacing:0.1em; margin-bottom:10px; font-family:'Space Mono',monospace;}
-  .ph-block{background:rgba(42,36,28,0.045); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:11.5px; margin-bottom:6px; color:var(--text);}
+  .ph-block{background:rgba(232,220,196,0.05); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:11.5px; margin-bottom:6px; color:var(--text);}
   .ph-cta{margin-top:10px; background:var(--amber); color:#161616; text-align:center; border-radius:8px; padding:8px; font-size:12px; font-weight:700;}
 
   .priority-wrap{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px;}
