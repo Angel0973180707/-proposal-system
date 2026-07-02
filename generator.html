@@ -115,8 +115,8 @@
 </header>
 
 <div class="draft-bar">
-  <input type="text" id="adminGasEndpoint" placeholder="後台管理 GAS 網址（留空則僅存在本機瀏覽器）" style="flex:1; min-width:220px; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 12px; border-radius:8px; font-size:12px; font-family:inherit;">
-  <input type="text" id="adminBaseUrl" placeholder="GitHub Pages 網址前綴，例如 angel0973180707.github.io/proposals" style="flex:1; min-width:220px; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 12px; border-radius:8px; font-size:12px; font-family:inherit;">
+  <input type="text" id="adminGasEndpoint" value="https://script.google.com/macros/s/AKfycbxuvn0CTiQ42qBUkU_tFA4X5GnzsOAOuMSfw304nRtjTpFzmg56MD3-EiUKHcJo9_p_BQ/exec" placeholder="後台管理 GAS 網址" style="flex:1; min-width:220px; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 12px; border-radius:8px; font-size:12px; font-family:inherit;">
+  <input type="text" id="adminBaseUrl" value="angel0973180707.github.io/-proposal-system/proposals" placeholder="GitHub Pages 網址前綴" style="flex:1; min-width:220px; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 12px; border-radius:8px; font-size:12px; font-family:inherit;">
   <select id="draftSelect"><option value="">— 載入已儲存的案件 —</option></select>
   <button id="loadDraftBtn">載入</button>
   <button id="deleteDraftBtn">刪除此案件</button>
@@ -555,7 +555,7 @@ function generateHtml(cfg){
 }
 
 const GAS_DEFAULT     = 'https://script.google.com/macros/s/AKfycbxuvn0CTiQ42qBUkU_tFA4X5GnzsOAOuMSfw304nRtjTpFzmg56MD3-EiUKHcJo9_p_BQ/exec';
-const BASE_URL_DEFAULT = 'angel0973180707.github.io/-proposal-system';
+const BASE_URL_DEFAULT = 'angel0973180707.github.io/-proposal-system/proposals';
 
 function getAdminBaseUrl(){
   return document.getElementById('adminBaseUrl').value.trim() || BASE_URL_DEFAULT;
