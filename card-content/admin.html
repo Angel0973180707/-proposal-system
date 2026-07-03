@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧名片內容協作 — 管理後台</title>
+<style>
+:root{--bg:#0f0d0b;--panel:#1a1714;--panel2:#22201a;--line:rgba(232,220,196,0.12);--text:#f0ebe0;--muted:#807060;--amber:#c89040;--gold:#d4a847;--teal:#4a9490;--green:#4a9060;--red:#c06060;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',-apple-system,sans-serif;font-size:14px;min-height:100vh;}
+/* overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.pw-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:36px 40px;min-width:320px;text-align:center;}
+.pw-box h2{font-size:20px;margin-bottom:6px;color:var(--gold);}
+.pw-box p{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.pw-box input{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:12px;font-family:inherit;}
+.pw-box button{width:100%;padding:10px;background:var(--amber);color:#161612;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.pw-err{color:var(--red);font-size:12px;margin-top:8px;min-height:18px;}
+/* header */
+.header{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;gap:12px;}
+.header h1{font-size:16px;color:var(--gold);}
+/* main */
+.main{max-width:900px;margin:0 auto;padding:24px 20px;}
+.section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;margin-bottom:24px;}
+.section h2{font-size:14px;color:var(--amber);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;margin-top:12px;}
+label:first-of-type{margin-top:0;}
+input[type=text],textarea{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;}
+input[type=text]:focus,textarea:focus{outline:none;border-color:var(--amber);}
+textarea{min-height:180px;resize:vertical;font-family:'Courier New',monospace;font-size:12px;}
+.row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:999px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.btn-primary{background:var(--amber);color:#161612;}
+.btn-primary:hover{background:var(--gold);}
+.btn-secondary{background:transparent;border:1px solid var(--teal);color:var(--teal);}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--text);color:var(--text);}
+.msg{margin-top:12px;font-size:12px;padding:10px 14px;border-radius:8px;}
+.msg-ok{background:rgba(74,144,96,0.15);border:1px solid rgba(74,144,96,0.3);color:#7ec89a;}
+.msg-err{background:rgba(192,96,96,0.15);border:1px solid rgba(192,96,96,0.3);color:#e09090;}
+.link-box{margin-top:14px;display:none;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--gold);border-radius:10px;padding:12px 16px;}
+.link-text{flex:1;color:var(--teal);font-size:13px;word-break:break-all;}
+/* schema hint */
+.schema-section{display:none;}
+/* case table */
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:8px 12px;font-size:11.5px;color:var(--muted);font-weight:400;border-bottom:1px solid var(--line);}
+td{padding:10px 12px;font-size:13px;border-bottom:1px solid rgba(232,220,196,0.06);}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;}
+.badge-pending{background:rgba(200,144,64,0.15);color:var(--amber);}
+.badge-done{background:rgba(74,144,96,0.15);color:#7ec89a;}
+/* selection panel */
+.sel-panel{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:16px;}
+.sel-panel h3{font-size:14px;color:var(--gold);margin-bottom:14px;}
+.sel-field{margin-bottom:12px;}
+.sel-field .fl{font-size:11px;color:var(--muted);margin-bottom:3px;}
+.sel-field .fv{font-size:13px;line-height:1.7;white-space:pre-wrap;}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="pwOverlay">
+  <div class="pw-box">
+    <h2>🔐 管理後台</h2>
+    <p>智慧名片內容協作系統</p>
+    <input type="password" id="pwInput" placeholder="請輸入管理密碼" onkeydown="if(event.key==='Enter')checkPw()">
+    <button onclick="checkPw()">進入後台</button>
+    <div class="pw-err" id="pwErr"></div>
+  </div>
+</div>
+
+<div id="mainApp" style="display:none">
+  <div class="header">
+    <h1>智慧名片內容協作 — 管理後台</h1>
+    <span style="flex:1"></span>
+    <button class="btn btn-ghost" onclick="loadCases()" style="font-size:12px;padding:6px 14px;">↺ 重新整理</button>
+  </div>
+
+  <div class="main">
+
+    <!-- 建立案件 -->
+    <div class="section">
+      <h2>＋ 建立新案件</h2>
+      <label>客戶代號（英文＋數字，例如 WANG001，不可重複）</label>
+      <input type="text" id="newCaseCode" placeholder="WANG001">
+      <label>客戶名稱</label>
+      <input type="text" id="newClientName" placeholder="王小明">
+      <label>AI 產生的 JSON 內容（貼入整包，格式見下方範例）</label>
+      <textarea id="newContentJSON" placeholder='{"clientName":"王小明","fields":[...]}'></textarea>
+      <div class="row">
+        <button class="btn btn-primary" onclick="createCase()">建立案件並取得連結</button>
+        <button class="btn btn-ghost" onclick="toggleSchema()" style="font-size:12px;">📋 JSON 格式範例</button>
+      </div>
+      <div id="createMsg"></div>
+      <div class="link-box" id="linkBox">
+        <span class="link-text" id="linkText"></span>
+        <button class="btn btn-secondary" onclick="copyLink()" style="padding:6px 14px;font-size:12px;">複製連結</button>
+      </div>
+    </div>
+
+    <!-- JSON schema hint -->
+    <div class="section schema-section" id="schemaSection">
+      <h2>📋 JSON 格式範例（請讓 AI 依此格式產生，再貼入上方欄位）</h2>
+      <textarea id="schemaTA" readonly style="min-height:400px;"></textarea>
+      <div class="row">
+        <button class="btn btn-ghost" onclick="copySchema()" style="font-size:12px;">複製範例</button>
+      </div>
+    </div>
+
+    <!-- 案件列表 -->
+    <div class="section">
+      <h2>📋 案件列表</h2>
+      <div id="caseListWrap"><p style="color:var(--muted);font-size:12px;">載入中...</p></div>
+    </div>
+
+    <!-- 勾選結果 -->
+    <div class="section" id="selSection" style="display:none">
+      <h2>✅ 客戶勾選結果</h2>
+      <div id="selContent"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxuvn0CTiQ42qBUkU_tFA4X5GnzsOAOuMSfw304nRtjTpFzmg56MD3-EiUKHcJo9_p_BQ/exec';
+const BASE_URL = 'https://angel0973180707.github.io/-proposal-system/card-content/client-select.html';
+const ADMIN_PASSWORD = 'angel2024'; // ← 可在此修改密碼
+
+// ---------- 登入 ----------
+function checkPw() {
+  if (document.getElementById('pwInput').value === ADMIN_PASSWORD) {
+    document.getElementById('pwOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    initSchemaTA();
+    loadCases();
+  } else {
+    document.getElementById('pwErr').textContent = '密碼錯誤，請重試';
+  }
+}
+
+// ---------- GAS 工具 ----------
+async function gasGet(params) {
+  const url = GAS_URL + '?' + new URLSearchParams(params);
+  const resp = await fetch(url);
+  return resp.json();
+}
+
+async function gasPost(body) {
+  const resp = await fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(body)
+  });
+  return resp.json();
+}
+
+// ---------- 建立案件 ----------
+async function createCase() {
+  const caseCode = document.getElementById('newCaseCode').value.trim();
+  const clientName = document.getElementById('newClientName').value.trim();
+  const contentJSON = document.getElementById('newContentJSON').value.trim();
+  const msgEl = document.getElementById('createMsg');
+  const linkBox = document.getElementById('linkBox');
+  linkBox.style.display = 'none';
+
+  if (!caseCode || !clientName || !contentJSON) {
+    msgEl.innerHTML = '<div class="msg msg-err">請填寫客戶代號、客戶名稱，並貼入 JSON 內容</div>';
+    return;
+  }
+  try { JSON.parse(contentJSON); } catch(e) {
+    msgEl.innerHTML = '<div class="msg msg-err">JSON 格式有誤：' + e.message + '</div>';
+    return;
+  }
+  msgEl.innerHTML = '<div class="msg" style="color:var(--muted)">建立中，請稍候...</div>';
+  try {
+    const r = await gasPost({ action: 'createCase', caseCode, clientName, contentJSON });
+    if (r.status === 'ok') {
+      const link = BASE_URL + '?case=' + encodeURIComponent(caseCode);
+      msgEl.innerHTML = '<div class="msg msg-ok">✅ 案件建立成功！請將下方連結傳給客戶</div>';
+      document.getElementById('linkText').textContent = link;
+      linkBox.style.display = 'flex';
+      document.getElementById('newCaseCode').value = '';
+      document.getElementById('newClientName').value = '';
+      document.getElementById('newContentJSON').value = '';
+      loadCases();
+    } else {
+      msgEl.innerHTML = '<div class="msg msg-err">錯誤：' + (r.message || '未知錯誤') + '</div>';
+    }
+  } catch(e) {
+    msgEl.innerHTML = '<div class="msg msg-err">網路錯誤：' + e.message + '</div>';
+  }
+}
+
+function copyLink() {
+  const text = document.getElementById('linkText').textContent;
+  navigator.clipboard?.writeText(text).then(() => {
+    const btn = event.currentTarget; const o = btn.textContent;
+    btn.textContent = '已複製 ✓'; setTimeout(() => btn.textContent = o, 1800);
+  });
+}
+
+// ---------- 案件列表 ----------
+async function loadCases() {
+  const wrap = document.getElementById('caseListWrap');
+  try {
+    const r = await gasGet({ action: 'listCardCases' });
+    if (!r.cases || r.cases.length === 0) {
+      wrap.innerHTML = '<p style="color:var(--muted);font-size:12px;">尚無案件</p>';
+      return;
+    }
+    let html = '<table><tr><th>案件代號</th><th>客戶名稱</th><th>建立日期</th><th>狀態</th><th>操作</th></tr>';
+    r.cases.forEach(c => {
+      const badge = c.status === '已送出'
+        ? '<span class="badge badge-done">已送出</span>'
+        : '<span class="badge badge-pending">待填寫</span>';
+      const code = encodeURIComponent(c.caseCode);
+      const cName = c.clientName.replace(/'/g,"\\'");
+      const cCode = c.caseCode.replace(/'/g,"\\'");
+      const btnView = c.status === '已送出'
+        ? `<button class="btn btn-secondary" onclick="viewSelection('${cCode}','${cName}')" style="padding:5px 12px;font-size:11.5px;">查看結果</button>`
+        : `<button class="btn btn-ghost" onclick="copyClientLink('${cCode}')" style="padding:5px 12px;font-size:11.5px;">複製連結</button>`;
+      html += `<tr><td style="font-family:monospace;font-size:12px;">${c.caseCode}</td><td>${c.clientName}</td><td style="color:var(--muted);font-size:12px;">${c.createdDate || '-'}</td><td>${badge}</td><td>${btnView}</td></tr>`;
+    });
+    html += '</table>';
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = '<p style="color:var(--red);font-size:12px;">載入失敗：' + e.message + '</p>';
+  }
+}
+
+function copyClientLink(caseCode) {
+  const link = BASE_URL + '?case=' + encodeURIComponent(caseCode);
+  navigator.clipboard?.writeText(link).then(() => alert('已複製：\n' + link));
+}
+
+// ---------- 查看勾選結果 ----------
+async function viewSelection(caseCode, clientName) {
+  const sec = document.getElementById('selSection');
+  const cont = document.getElementById('selContent');
+  sec.style.display = 'block';
+  cont.innerHTML = '<p style="color:var(--muted)">載入中...</p>';
+  sec.scrollIntoView({ behavior: 'smooth' });
+  try {
+    const r = await gasGet({ action: 'getSelection', caseCode });
+    if (!r.data) {
+      cont.innerHTML = '<p style="color:var(--muted)">尚未收到客戶勾選結果</p>';
+      return;
+    }
+    const d = r.data;
+    const txt = fmtTxt(d, clientName, caseCode);
+    const FIELDS = [
+      ['稱謂／職稱', d.field1_role],
+      ['Slogan', d.field1_slogan],
+      ['服務項目', d.field2_services],
+      ['品牌故事', d.field3_story],
+      ['LINE 官方帳號', d.field4_line],
+      ['微信 ID', d.field4_wechat],
+      ['電話', d.field4_phone],
+      ['Email', d.field4_email],
+      ['地址', d.field4_address],
+      ['跑馬燈', d.field5_marquee],
+      ['YouTube', d.field6_youtube],
+      ['FB 粉專', d.field6_fb],
+      ['CTA 按鈕', d.field7_cta],
+      ['照片方向建議', d.field8_photos],
+      ['其他備註', d.otherNotes],
+    ];
+    let html = `<div class="sel-panel"><h3>${clientName}（${caseCode}）｜送出時間：${(d.submittedAt||'-').slice(0,19)}</h3>`;
+    FIELDS.forEach(([lbl, val]) => {
+      if (!val) return;
+      html += `<div class="sel-field"><div class="fl">${lbl}</div><div class="fv">${val.replace(/</g,'&lt;')}</div></div>`;
+    });
+    html += `<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="doCopy()">複製文字</button>
+      <button class="btn btn-ghost" onclick="doDownload()">下載 .txt</button>
+    </div></div>`;
+    cont.innerHTML = html;
+    cont._txt = txt;
+    cont._fname = clientName + '_智慧名片內容.txt';
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--red)">載入失敗：' + e.message + '</p>';
+  }
+}
+
+function fmtTxt(d, clientName, caseCode) {
+  const ts = (d.submittedAt || '-').slice(0, 19);
+  return [
+    '─────────────────────',
+    '[' + clientName + ']｜智慧名片內容填寫建議',
+    '產生時間：' + ts,
+    '─────────────────────',
+    '',
+    '【稱謂／職稱欄位】',
+    d.field1_role || '',
+    '',
+    '【Slogan欄位】',
+    d.field1_slogan || '',
+    '',
+    '【服務項目欄位】（逐條填入）',
+    d.field2_services || '',
+    '',
+    '【經歷／品牌故事欄位】',
+    d.field3_story || '',
+    '',
+    '【聯繫方式欄位】',
+    'LINE：' + (d.field4_line || ''),
+    '微信：' + (d.field4_wechat || ''),
+    '電話：' + (d.field4_phone || ''),
+    'Email：' + (d.field4_email || ''),
+    '地址：' + (d.field4_address || ''),
+    '',
+    '【重要訊息／跑馬燈欄位】',
+    d.field5_marquee || '',
+    '',
+    '【影音／社群欄位】',
+    'YouTube：' + (d.field6_youtube || ''),
+    'FB：' + (d.field6_fb || ''),
+    '',
+    '【立即行動／CTA按鈕欄位】',
+    d.field7_cta || '',
+    '',
+    '【照片輪播欄位】（建議方向）',
+    d.field8_photos || '',
+    ...(d.otherNotes ? ['', '【其他備註】', d.otherNotes] : []),
+    '',
+    '─────────────────────',
+  ].join('\n');
+}
+
+function doCopy() {
+  const txt = document.getElementById('selContent')._txt;
+  navigator.clipboard?.writeText(txt).then(() => {
+    const btn = event.currentTarget; const o = btn.textContent;
+    btn.textContent = '已複製 ✓'; setTimeout(() => btn.textContent = o, 1800);
+  });
+}
+
+function doDownload() {
+  const cont = document.getElementById('selContent');
+  const a = document.createElement('a');
+  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(cont._txt);
+  a.download = cont._fname;
+  a.click();
+}
+
+// ---------- Schema hint ----------
+const SCHEMA_OBJ = {
+  clientName: '王小明',
+  fields: [
+    { key: 'field1_role', label: '稱謂／職稱', type: 'select',
+      options: [
+        { id: 'A', text: '品牌顧問' },
+        { id: 'B', text: '行銷總監' },
+        { id: 'C', text: '創辦人暨執行長' }
+      ]
+    },
+    { key: 'field1_slogan', label: 'Slogan', type: 'select',
+      options: [
+        { id: 'A', text: '讓品牌說話，讓成交倍增' },
+        { id: 'B', text: '品牌定位，我的強項' },
+        { id: 'C', text: '專業賦能，成就每一位客戶' }
+      ]
+    },
+    { key: 'field2_services', label: '服務項目', type: 'select',
+      options: [
+        { id: 'A', text: '品牌策略規劃、行銷內容創作、社群媒體經營' },
+        { id: 'B', text: '品牌定位諮詢、內容行銷、KOL合作策略' },
+        { id: 'C', text: '一對一品牌教練、品牌視覺建立、線上課程開發' }
+      ]
+    },
+    { key: 'field3_story', label: '品牌故事', type: 'select',
+      options: [
+        { id: 'A', text: '10年品牌顧問經驗，協助超過200家企業打造獨特品牌定位，讓您的品牌脫穎而出。' },
+        { id: 'B', text: '從行銷人到品牌教練，我走過的每一步都是客戶的捷徑，陪您找到最適合的品牌方向。' },
+        { id: 'C', text: '相信每個人都有獨特的品牌故事，我的工作就是幫您說出最動人的那一版。' }
+      ]
+    },
+    { key: 'field4_contact', label: '聯繫方式', type: 'inputs',
+      hint: '請確認或填入您的聯繫資訊',
+      inputs: [
+        { key: 'field4_line', label: 'LINE 官方帳號連結', value: 'https://lin.ee/xxxxx' },
+        { key: 'field4_wechat', label: '微信 ID', value: '' },
+        { key: 'field4_phone', label: '電話', value: '0912-345-678' },
+        { key: 'field4_email', label: 'Email', value: 'example@email.com' },
+        { key: 'field4_address', label: '地址（選填）', value: '' }
+      ]
+    },
+    { key: 'field5_marquee', label: '跑馬燈', type: 'select',
+      options: [
+        { id: 'A', text: '✨ 品牌定位專家 ✨ 10年行銷經驗 ✨ 200+品牌成功案例' },
+        { id: 'B', text: '🚀 協助您的品牌脫穎而出 🚀 立即預約免費諮詢' },
+        { id: 'C', text: '💡 品牌顧問｜行銷策略｜內容創作｜社群成長' }
+      ]
+    },
+    { key: 'field6_social', label: '影音／社群', type: 'inputs',
+      hint: '請填入您的社群連結（選填）',
+      inputs: [
+        { key: 'field6_youtube', label: 'YouTube 頻道連結', value: '' },
+        { key: 'field6_fb', label: 'FB 粉絲專頁連結', value: '' }
+      ]
+    },
+    { key: 'field7_cta', label: 'CTA 按鈕', type: 'select',
+      options: [
+        { id: 'A', text: '立即預約免費品牌諮詢' },
+        { id: 'B', text: '索取品牌健診報告' },
+        { id: 'C', text: '加入品牌成長社群' }
+      ]
+    },
+    { key: 'field8_photos', label: '照片方向建議', type: 'textarea',
+      hint: '（AI建議範例，客戶可自行補充）建議拍攝5-8張照片，包含個人專業形象照、工作場景照、與客戶互動照等。' }
+  ]
+};
+
+function initSchemaTA() {
+  document.getElementById('schemaTA').value = JSON.stringify(SCHEMA_OBJ, null, 2);
+}
+
+function toggleSchema() {
+  const sec = document.getElementById('schemaSection');
+  sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+}
+
+function copySchema() {
+  const txt = document.getElementById('schemaTA').value;
+  navigator.clipboard?.writeText(txt).then(() => {
+    const btn = event.currentTarget; const o = btn.textContent;
+    btn.textContent = '已複製 ✓'; setTimeout(() => btn.textContent = o, 1800);
+  });
+}
+</script>
+</body>
+</html>

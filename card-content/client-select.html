@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>名片內容選擇</title>
+<style>
+:root{
+  --bg1:#0d0820;--bg2:#1a1040;
+  --card:rgba(255,255,255,0.06);--card-b:rgba(255,255,255,0.12);
+  --text:#f0ecff;--muted:#9080c0;
+  --gold:#d4af37;--gold-dim:rgba(212,175,55,0.25);
+  --purple:#7b3ff2;--purple-lt:#a06fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;}
+body{
+  background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 50%,#0f0030 100%);
+  color:var(--text);
+  font-family:'Noto Sans TC',-apple-system,sans-serif;
+  font-size:14px;
+  padding-bottom:100px;
+}
+.page{max-width:480px;margin:0 auto;padding:0 14px;}
+
+/* top bar */
+.top-bar{text-align:center;padding:32px 16px 22px;}
+.brand{font-size:12px;color:var(--gold);letter-spacing:.14em;margin-bottom:10px;}
+.top-bar h1{font-size:19px;font-weight:700;margin-bottom:8px;}
+.top-bar p{font-size:13px;color:var(--muted);}
+
+/* field card */
+.fcard{background:var(--card);border:1px solid var(--card-b);border-radius:16px;padding:18px 16px;margin-bottom:14px;backdrop-filter:blur(8px);}
+.ftitle{font-size:13px;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.fnum{display:inline-block;background:rgba(123,63,242,0.28);border:1px solid rgba(123,63,242,0.45);border-radius:999px;font-size:11px;padding:1px 9px;color:var(--purple-lt);}
+
+/* option cards */
+.opt-list{display:flex;flex-direction:column;gap:10px;}
+.opt-card{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 15px;cursor:pointer;transition:.18s;}
+.opt-card:hover{border-color:rgba(212,175,55,0.4);}
+.opt-card.selected{border-color:var(--gold);background:rgba(212,175,55,0.09);}
+.opt-id{display:inline-block;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.08);text-align:center;line-height:22px;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;transition:.18s;}
+.opt-card.selected .opt-id{background:var(--gold);color:#1a0020;}
+.opt-text{font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text);}
+
+/* inputs */
+.ihint{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.irow{margin-bottom:10px;}
+.irow label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+.irow input{width:100%;padding:10px 13px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;}
+.irow input:focus{outline:none;border-color:var(--purple-lt);}
+
+/* textarea */
+.ta-field{width:100%;padding:11px 13px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;min-height:80px;}
+.ta-field:focus{outline:none;border-color:var(--purple-lt);}
+
+/* notes card */
+.notes-card{background:var(--card);border:1px solid var(--card-b);border-radius:16px;padding:18px 16px;margin-bottom:14px;}
+
+/* submit bar */
+.submit-bar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(13,8,32,.97) 60%,transparent);padding:22px 20px 26px;display:flex;justify-content:center;}
+.btn-submit{background:linear-gradient(90deg,var(--purple),var(--purple-lt));color:#fff;border:none;padding:14px 52px;border-radius:999px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 24px rgba(123,63,242,.4);}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed;}
+
+/* states */
+.state-wrap{text-align:center;padding:80px 20px;}
+.state-icon{font-size:60px;margin-bottom:20px;}
+.state-wrap h2{font-size:21px;color:var(--gold);margin-bottom:12px;}
+.state-wrap p{color:var(--muted);font-size:14px;line-height:1.8;}
+</style>
+</head>
+<body>
+
+<!-- loading -->
+<div id="stLoading"><div class="page"><div class="state-wrap"><div class="state-icon">⏳</div><p>載入中，請稍候...</p></div></div></div>
+
+<!-- error -->
+<div id="stError" style="display:none"><div class="page"><div class="state-wrap"><div class="state-icon">⚠️</div><h2>無法載入</h2><p id="errMsg">請確認連結是否正確</p></div></div></div>
+
+<!-- already submitted -->
+<div id="stDone" style="display:none"><div class="page"><div class="state-wrap"><div class="state-icon">✅</div><h2>已送出！</h2><p>感謝您的選擇<br>顧問將依您選擇的內容整理名片欄位，<br>並與您確認後完成設定。</p></div></div></div>
+
+<!-- main -->
+<div id="stMain" style="display:none">
+  <div class="page">
+    <div class="top-bar">
+      <div class="brand">✦ HSC 智慧名片</div>
+      <h1 id="pgTitle">請選擇您喜歡的名片內容</h1>
+      <p>每個欄位點選一個最適合您的選項</p>
+    </div>
+    <div id="fieldsWrap"></div>
+    <div class="notes-card">
+      <div class="ftitle">💬 其他建議或備註</div>
+      <textarea class="ta-field" id="otherNotes" placeholder="（選填）有任何想補充的想法或顧慮，歡迎寫在這裡..."></textarea>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-submit" id="submitBtn" onclick="submitAll()">送出我的選擇</button>
+  </div>
+</div>
+
+<script>
+const GAS = 'https://script.google.com/macros/s/AKfycbxuvn0CTiQ42qBUkU_tFA4X5GnzsOAOuMSfw304nRtjTpFzmg56MD3-EiUKHcJo9_p_BQ/exec';
+const CASE_CODE = new URLSearchParams(location.search).get('case') || '';
+let cfg = null;
+const sel = {};  // field key → selected text
+
+function show(id) {
+  ['stLoading','stError','stDone','stMain'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+}
+
+function showErr(msg) {
+  document.getElementById('errMsg').textContent = msg;
+  show('stError');
+}
+
+async function init() {
+  if (!CASE_CODE) { showErr('連結格式錯誤：缺少案件代號（?case=XXX）'); return; }
+  try {
+    const r = await fetch(GAS + '?action=getCase&caseCode=' + encodeURIComponent(CASE_CODE));
+    const json = await r.json();
+    if (!json.data) { showErr('找不到此案件（' + CASE_CODE + '），請確認連結是否正確'); return; }
+    cfg = json.data;
+    if (cfg.status === '已送出') { show('stDone'); return; }
+    render();
+  } catch(e) {
+    showErr('網路錯誤：' + e.message);
+  }
+}
+
+function render() {
+  let fields;
+  try { fields = JSON.parse(cfg.contentJSON).fields || []; } catch(e) { showErr('內容格式錯誤：' + e.message); return; }
+
+  const clientName = (() => { try { return JSON.parse(cfg.contentJSON).clientName || ''; } catch(e) { return ''; } })();
+  if (clientName) { document.getElementById('pgTitle').textContent = clientName + ' — 請選擇您喜歡的名片內容'; document.title = clientName + '｜名片內容選擇'; }
+
+  const wrap = document.getElementById('fieldsWrap');
+  wrap.innerHTML = '';
+
+  fields.forEach((field, idx) => {
+    const card = document.createElement('div');
+    card.className = 'fcard';
+    const numSpan = `<span class="fnum">${idx + 1}</span>`;
+
+    if (field.type === 'select') {
+      sel[field.key] = null;
+      let optsHtml = field.options.map(opt => {
+        const safeText = opt.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+        return `<div class="opt-card" data-key="${field.key}" data-text="${safeText}" onclick="pick(this,'${field.key}')">
+          <div class="opt-id">${opt.id}</div>
+          <div class="opt-text">${opt.text.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>
+        </div>`;
+      }).join('');
+      card.innerHTML = `<div class="ftitle">${numSpan}${field.label}</div><div class="opt-list">${optsHtml}</div>`;
+
+    } else if (field.type === 'inputs') {
+      let iHtml = `<div class="ftitle">${numSpan}${field.label}</div>`;
+      if (field.hint) iHtml += `<div class="ihint">${field.hint}</div>`;
+      (field.inputs || []).forEach(inp => {
+        sel[inp.key] = inp.value || '';
+        const safeVal = (inp.value || '').replace(/"/g,'&quot;');
+        iHtml += `<div class="irow"><label>${inp.label}</label><input type="text" id="inp_${inp.key}" value="${safeVal}" placeholder="${inp.label}" oninput="sel['${inp.key}']=this.value.trim()"></div>`;
+      });
+      card.innerHTML = iHtml;
+
+    } else if (field.type === 'textarea') {
+      sel[field.key] = '';
+      card.innerHTML = `<div class="ftitle">${numSpan}${field.label}</div>
+        ${field.hint ? `<div class="ihint">${field.hint}</div>` : ''}
+        <textarea class="ta-field" id="ta_${field.key}" placeholder="（選填）在此補充您的想法..." oninput="sel['${field.key}']=this.value.trim()"></textarea>`;
+    }
+
+    wrap.appendChild(card);
+  });
+
+  show('stMain');
+}
+
+function pick(el, key) {
+  document.querySelectorAll(`.opt-card[data-key="${key}"]`).forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  sel[key] = el.dataset.text;
+}
+
+async function submitAll() {
+  // collect latest input/textarea values
+  let fields;
+  try { fields = JSON.parse(cfg.contentJSON).fields || []; } catch(e) { fields = []; }
+  fields.forEach(f => {
+    if (f.type === 'inputs') {
+      (f.inputs || []).forEach(inp => {
+        const el = document.getElementById('inp_' + inp.key);
+        if (el) sel[inp.key] = el.value.trim();
+      });
+    } else if (f.type === 'textarea') {
+      const el = document.getElementById('ta_' + f.key);
+      if (el) sel[f.key] = el.value.trim();
+    }
+  });
+
+  // check required (select type)
+  const missing = fields.filter(f => f.type === 'select' && !sel[f.key]);
+  if (missing.length > 0) {
+    alert('請選擇以下欄位的選項：\n' + missing.map(f => f.label).join('、'));
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '送出中...';
+
+  const clientName = (() => { try { return JSON.parse(cfg.contentJSON).clientName || ''; } catch(e) { return ''; } })();
+  const payload = Object.assign(
+    { action: 'submitSelection', caseCode: CASE_CODE, clientName, otherNotes: (document.getElementById('otherNotes').value || '').trim() },
+    sel
+  );
+
+  try {
+    const resp = await fetch(GAS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    const r = await resp.json();
+    if (r.status === 'ok') {
+      show('stDone');
+    } else {
+      alert('送出失敗：' + (r.message || '未知錯誤'));
+      btn.disabled = false; btn.textContent = '送出我的選擇';
+    }
+  } catch(e) {
+    alert('網路錯誤：' + e.message);
+    btn.disabled = false; btn.textContent = '送出我的選擇';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

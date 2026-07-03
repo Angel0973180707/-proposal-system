@@ -26,6 +26,8 @@
 
 const SUBMISSIONS_SHEET = "submissions";
 const CASES_SHEET = "cases";
+const CARD_CASES_SHEET = "card_cases";
+const CARD_SELECTIONS_SHEET = "card_selections";
 
 function setupHeaders() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -45,6 +47,23 @@ function setupHeaders() {
     "案件代號", "客戶名稱", "設定內容(JSON)", "更新時間", "交付網址"
   ]]);
   caseSheet.getRange(1, 1, 1, 5).setFontWeight("bold");
+
+  // 智慧名片內容協作系統
+  let cardCasesSheet = ss.getSheetByName(CARD_CASES_SHEET);
+  if (!cardCasesSheet) cardCasesSheet = ss.insertSheet(CARD_CASES_SHEET);
+  cardCasesSheet.getRange(1, 1, 1, 5).setValues([["caseCode", "clientName", "contentJSON", "createdDate", "status"]]);
+  cardCasesSheet.getRange(1, 1, 1, 5).setFontWeight("bold");
+
+  let cardSelSheet = ss.getSheetByName(CARD_SELECTIONS_SHEET);
+  if (!cardSelSheet) cardSelSheet = ss.insertSheet(CARD_SELECTIONS_SHEET);
+  cardSelSheet.getRange(1, 1, 1, 18).setValues([[
+    "caseCode", "clientName", "submittedAt",
+    "field1_role", "field1_slogan", "field2_services", "field3_story",
+    "field4_line", "field4_wechat", "field4_phone", "field4_email", "field4_address",
+    "field5_marquee", "field6_youtube", "field6_fb", "field7_cta", "field8_photos",
+    "otherNotes"
+  ]]);
+  cardSelSheet.getRange(1, 1, 1, 18).setFontWeight("bold");
 }
 
 /* ---------------- doGet：讀取類請求（列表、載入單一案件），支援 JSONP 避開瀏覽器 CORS 限制 ---------------- */
@@ -58,6 +77,12 @@ function doGet(e) {
       result = { status: "ok", cases: listCases() };
     } else if (action === "loadCase") {
       result = { status: "ok", case: loadCase(e.parameter.caseCode) };
+    } else if (action === "listCardCases") {
+      result = { status: "ok", cases: listCardCases_() };
+    } else if (action === "getCase") {
+      result = { status: "ok", data: getCardCase_(e.parameter.caseCode) };
+    } else if (action === "getSelection") {
+      result = { status: "ok", data: getCardSelection_(e.parameter.caseCode) };
     } else {
       result = { status: "error", message: "未知的 action" };
     }
@@ -117,8 +142,11 @@ function doPost(e) {
     } else if (action === "deleteCase") {
       deleteCase(data.caseCode);
     } else if (action === "publishToGithub") {
-      // === GitHub 發布功能：result 帶回實際回傳資料（url 或 error message）
       result = publishToGithub(data);
+    } else if (action === "createCase") {
+      createCardCase_(data);
+    } else if (action === "submitSelection") {
+      result = submitCardSelection_(data);
     }
 
     return ContentService
@@ -261,4 +289,114 @@ function publishToGithub(data) {
       message: 'GitHub API 回應 ' + code + '：' + errText.slice(0, 300)
     };
   }
+}
+
+/* ================== 智慧名片內容協作系統 ================== */
+
+function listCardCases_() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CARD_CASES_SHEET);
+  if (!sheet) return [];
+  const data = sheet.getDataRange().getValues();
+  const out = [];
+  for (let i = 1; i < data.length; i++) {
+    if (!data[i][0]) continue;
+    out.push({
+      caseCode: String(data[i][0]),
+      clientName: String(data[i][1]),
+      createdDate: data[i][3] ? String(data[i][3]).slice(0, 10) : '',
+      status: data[i][4] || '待填寫'
+    });
+  }
+  return out;
+}
+
+function getCardCase_(caseCode) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CARD_CASES_SHEET);
+  if (!sheet) return null;
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(caseCode)) {
+      return {
+        caseCode: String(data[i][0]),
+        clientName: String(data[i][1]),
+        contentJSON: String(data[i][2]),
+        createdDate: data[i][3] ? String(data[i][3]).slice(0, 10) : '',
+        status: data[i][4] || '待填寫'
+      };
+    }
+  }
+  return null;
+}
+
+function getCardSelection_(caseCode) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CARD_SELECTIONS_SHEET);
+  if (!sheet) return null;
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return null;
+  const headers = data[0];
+  let lastRow = null;
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(caseCode)) lastRow = data[i];
+  }
+  if (!lastRow) return null;
+  const result = {};
+  headers.forEach((h, i) => { result[h] = lastRow[i] !== undefined ? String(lastRow[i]) : ''; });
+  return result;
+}
+
+function createCardCase_(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(CARD_CASES_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(CARD_CASES_SHEET);
+    sheet.getRange(1, 1, 1, 5).setValues([["caseCode", "clientName", "contentJSON", "createdDate", "status"]]);
+    sheet.getRange(1, 1, 1, 5).setFontWeight("bold");
+  }
+  const existing = sheet.getDataRange().getValues();
+  for (let i = 1; i < existing.length; i++) {
+    if (String(existing[i][0]) === String(data.caseCode)) {
+      sheet.getRange(i + 1, 1, 1, 5).setValues([[
+        data.caseCode, data.clientName, data.contentJSON, existing[i][3], existing[i][4] || '待填寫'
+      ]]);
+      return;
+    }
+  }
+  sheet.appendRow([data.caseCode, data.clientName, data.contentJSON, new Date(), '待填寫']);
+}
+
+function submitCardSelection_(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let selSheet = ss.getSheetByName(CARD_SELECTIONS_SHEET);
+  if (!selSheet) {
+    selSheet = ss.insertSheet(CARD_SELECTIONS_SHEET);
+    selSheet.getRange(1, 1, 1, 18).setValues([[
+      "caseCode", "clientName", "submittedAt",
+      "field1_role", "field1_slogan", "field2_services", "field3_story",
+      "field4_line", "field4_wechat", "field4_phone", "field4_email", "field4_address",
+      "field5_marquee", "field6_youtube", "field6_fb", "field7_cta", "field8_photos", "otherNotes"
+    ]]);
+    selSheet.getRange(1, 1, 1, 18).setFontWeight("bold");
+  }
+  selSheet.appendRow([
+    data.caseCode || '', data.clientName || '', new Date(),
+    data.field1_role || '', data.field1_slogan || '',
+    data.field2_services || '', data.field3_story || '',
+    data.field4_line || '', data.field4_wechat || '',
+    data.field4_phone || '', data.field4_email || '',
+    data.field4_address || '', data.field5_marquee || '',
+    data.field6_youtube || '', data.field6_fb || '',
+    data.field7_cta || '', data.field8_photos || '',
+    data.otherNotes || ''
+  ]);
+  const casesSheet = ss.getSheetByName(CARD_CASES_SHEET);
+  if (casesSheet) {
+    const casesData = casesSheet.getDataRange().getValues();
+    for (let i = 1; i < casesData.length; i++) {
+      if (String(casesData[i][0]) === String(data.caseCode)) {
+        casesSheet.getRange(i + 1, 5).setValue('已送出');
+        break;
+      }
+    }
+  }
+  return { status: 'ok', message: '選擇已儲存' };
 }
