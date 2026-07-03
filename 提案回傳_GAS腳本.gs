@@ -35,32 +35,33 @@ function setupHeaders() {
   let subSheet = ss.getSheetByName(SUBMISSIONS_SHEET);
   if (!subSheet) subSheet = ss.insertSheet(SUBMISSIONS_SHEET);
   subSheet.getRange(1, 1, 1, 10).setValues([[
-    "submittedAt", "caseCode", "clientName", "contactName", "slogan",
-    "ipFreq", "blocks", "priorities", "matrix", "note"
+    "submittedAt 送出時間", "caseCode 案件代號", "clientName 客戶名稱", "contactName 填寫人", "slogan 主標語",
+    "ipFreq IP頻率設定", "blocks 保留區塊", "priorities 前三優先", "matrix 內容矩陣", "note 補充說明"
   ]]);
   subSheet.getRange(1, 1, 1, 10).setFontWeight("bold");
 
   let caseSheet = ss.getSheetByName(CASES_SHEET);
   if (!caseSheet) caseSheet = ss.insertSheet(CASES_SHEET);
   caseSheet.getRange(1, 1, 1, 5).setValues([[
-    "caseCode", "clientName", "configJSON", "updatedAt", "deliveryUrl"
+    "caseCode 案件代號", "clientName 客戶名稱", "configJSON 設定內容", "updatedAt 更新時間", "deliveryUrl 交付網址"
   ]]);
   caseSheet.getRange(1, 1, 1, 5).setFontWeight("bold");
 
   // 智慧名片內容協作系統
   let cardCasesSheet = ss.getSheetByName(CARD_CASES_SHEET);
   if (!cardCasesSheet) cardCasesSheet = ss.insertSheet(CARD_CASES_SHEET);
-  cardCasesSheet.getRange(1, 1, 1, 5).setValues([["caseCode", "clientName", "contentJSON", "createdDate", "status"]]);
+  cardCasesSheet.getRange(1, 1, 1, 5).setValues([["caseCode 案件代號", "clientName 客戶名稱", "contentJSON 內容JSON", "createdDate 建立日期", "status 狀態"]]);
   cardCasesSheet.getRange(1, 1, 1, 5).setFontWeight("bold");
 
   let cardSelSheet = ss.getSheetByName(CARD_SELECTIONS_SHEET);
   if (!cardSelSheet) cardSelSheet = ss.insertSheet(CARD_SELECTIONS_SHEET);
   cardSelSheet.getRange(1, 1, 1, 18).setValues([[
-    "caseCode", "clientName", "submittedAt",
-    "field1_role", "field1_slogan", "field2_services", "field3_story",
-    "field4_line", "field4_wechat", "field4_phone", "field4_email", "field4_address",
-    "field5_marquee", "field6_youtube", "field6_fb", "field7_cta", "field8_photos",
-    "otherNotes"
+    "caseCode 案件代號", "clientName 客戶名稱", "submittedAt 送出時間",
+    "field1_role 稱謂職稱", "field1_slogan 主標語", "field2_services 服務項目", "field3_story 品牌故事",
+    "field4_line LINE", "field4_wechat 微信", "field4_phone 電話", "field4_email Email", "field4_address 地址",
+    "field5_marquee 跑馬燈", "field6_youtube YouTube", "field6_fb FB粉專",
+    "field7_cta CTA按鈕", "field8_photos 照片方向",
+    "otherNotes 其他備註"
   ]]);
   cardSelSheet.getRange(1, 1, 1, 18).setFontWeight("bold");
 }
@@ -348,7 +349,7 @@ function createCardCase_(data) {
   let sheet = ss.getSheetByName(CARD_CASES_SHEET);
   if (!sheet) {
     sheet = ss.insertSheet(CARD_CASES_SHEET);
-    sheet.getRange(1, 1, 1, 5).setValues([["caseCode", "clientName", "contentJSON", "createdDate", "status"]]);
+    sheet.getRange(1, 1, 1, 5).setValues([["caseCode 案件代號", "clientName 客戶名稱", "contentJSON 內容JSON", "createdDate 建立日期", "status 狀態"]]);
     sheet.getRange(1, 1, 1, 5).setFontWeight("bold");
   }
   const existing = sheet.getDataRange().getValues();
@@ -369,10 +370,11 @@ function submitCardSelection_(data) {
   if (!selSheet) {
     selSheet = ss.insertSheet(CARD_SELECTIONS_SHEET);
     selSheet.getRange(1, 1, 1, 18).setValues([[
-      "caseCode", "clientName", "submittedAt",
-      "field1_role", "field1_slogan", "field2_services", "field3_story",
-      "field4_line", "field4_wechat", "field4_phone", "field4_email", "field4_address",
-      "field5_marquee", "field6_youtube", "field6_fb", "field7_cta", "field8_photos", "otherNotes"
+      "caseCode 案件代號", "clientName 客戶名稱", "submittedAt 送出時間",
+      "field1_role 稱謂職稱", "field1_slogan 主標語", "field2_services 服務項目", "field3_story 品牌故事",
+      "field4_line LINE", "field4_wechat 微信", "field4_phone 電話", "field4_email Email", "field4_address 地址",
+      "field5_marquee 跑馬燈", "field6_youtube YouTube", "field6_fb FB粉專",
+      "field7_cta CTA按鈕", "field8_photos 照片方向", "otherNotes 其他備註"
     ]]);
     selSheet.getRange(1, 1, 1, 18).setFontWeight("bold");
   }
