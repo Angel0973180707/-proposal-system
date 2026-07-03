@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>名片內容選擇 — HSC</title>
+<style>
+:root{
+  --bg1:#0d0820;--bg2:#1a1040;--bg3:#0f0030;
+  --card:rgba(255,255,255,0.06);--card-b:rgba(255,255,255,0.12);
+  --text:#f0ecff;--muted:#9080c0;
+  --gold:#d4af37;--gold-dim:rgba(212,175,55,0.18);
+  --purple:#7b3ff2;--purple-lt:#a06fff;--purple-dark:#4a1fa8;
+  --teal:#2dd4bf;--rose:#f43f5e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;}
+body{
+  background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg3) 100%);
+  color:var(--text);
+  font-family:'Noto Sans TC',-apple-system,sans-serif;
+  font-size:14px;
+  padding-bottom:110px;
+}
+.page{max-width:480px;margin:0 auto;padding:0 14px;}
+
+/* top bar */
+.top-bar{text-align:center;padding:36px 16px 20px;}
+.brand{font-size:12px;color:var(--gold);letter-spacing:.14em;margin-bottom:10px;}
+.top-bar h1{font-size:20px;font-weight:700;margin-bottom:6px;}
+.top-bar p{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* client info bar */
+.client-info{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px;margin-bottom:18px;}
+.ci-label{font-size:11px;color:var(--gold);letter-spacing:.05em;margin-bottom:10px;}
+.ci-row{display:flex;gap:10px;}
+.ci-field{flex:1;}
+.ci-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;}
+.ci-field input{width:100%;padding:9px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;}
+.ci-field input:focus{outline:none;border-color:var(--gold);}
+
+/* section label */
+.sec-label{font-size:11.5px;color:var(--gold);letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.sec-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(123,63,242,0.28);border:1px solid rgba(123,63,242,0.45);font-size:11px;color:var(--purple-lt);font-weight:700;flex-shrink:0;}
+.sec-req{font-size:10px;color:var(--rose);margin-left:2px;}
+
+/* field card */
+.fcard{background:var(--card);border:1px solid var(--card-b);border-radius:16px;padding:18px 16px;margin-bottom:14px;backdrop-filter:blur(8px);}
+
+/* option cards */
+.opt-list{display:flex;flex-direction:column;gap:10px;}
+.opt-card{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 15px;cursor:pointer;transition:.18s;}
+.opt-card:hover{border-color:rgba(212,175,55,0.4);}
+.opt-card.selected{border-color:var(--gold);background:var(--gold-dim);}
+.opt-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.08);font-size:12px;font-weight:700;color:var(--muted);margin-bottom:9px;transition:.18s;}
+.opt-card.selected .opt-badge{background:var(--gold);color:#1a0020;}
+
+/* field 1: title */
+.f1-role{font-size:15px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.f1-slogan{font-size:13px;color:var(--purple-lt);line-height:1.55;}
+.f1-slogan-line{display:block;}
+.f1-char-hint{font-size:10px;color:var(--muted);margin-top:4px;}
+
+/* field 2: services */
+.svc-list{display:flex;flex-direction:column;gap:5px;}
+.svc-item{font-size:13px;color:var(--text);display:flex;align-items:flex-start;gap:7px;}
+.svc-dot{color:var(--purple-lt);flex-shrink:0;margin-top:1px;}
+
+/* field 3: story */
+.story-style{font-size:12px;color:var(--teal);font-weight:600;margin-bottom:3px;}
+.story-desc{font-size:11.5px;color:var(--muted);margin-bottom:8px;font-style:italic;}
+.story-content{font-size:13px;color:var(--text);line-height:1.75;white-space:pre-wrap;}
+
+/* field 5: marquee */
+.marquee-text{font-size:13px;color:var(--text);line-height:1.6;}
+
+/* field 7: cta */
+.cta-list{display:flex;flex-direction:column;gap:5px;}
+.cta-item{font-size:13px;background:rgba(123,63,242,0.12);border:1px solid rgba(123,63,242,0.25);border-radius:6px;padding:5px 11px;color:var(--purple-lt);}
+
+/* field 8: photos */
+.photo-list{display:flex;flex-direction:column;gap:5px;}
+.photo-item{font-size:13px;color:var(--text);display:flex;align-items:flex-start;gap:7px;}
+
+/* inputs */
+.inp-hint{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.irow{margin-bottom:10px;}
+.irow label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+.irow input{width:100%;padding:10px 13px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;}
+.irow input:focus{outline:none;border-color:var(--purple-lt);}
+
+/* textarea */
+.ta-field{width:100%;padding:11px 13px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;min-height:80px;}
+.ta-field:focus{outline:none;border-color:var(--purple-lt);}
+
+/* notes */
+.notes-card{background:var(--card);border:1px solid var(--card-b);border-radius:16px;padding:18px 16px;margin-bottom:14px;}
+
+/* submit */
+.submit-bar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(13,8,32,.97) 60%,transparent);padding:22px 20px 28px;display:flex;justify-content:center;}
+.btn-submit{background:linear-gradient(90deg,var(--purple),var(--purple-lt));color:#fff;border:none;padding:15px 52px;border-radius:999px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 24px rgba(123,63,242,.4);transition:.2s;}
+.btn-submit:hover{filter:brightness(1.1);}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed;}
+
+/* states */
+.state-wrap{text-align:center;padding:80px 24px;}
+.state-icon{font-size:60px;margin-bottom:20px;}
+.state-wrap h2{font-size:22px;color:var(--gold);margin-bottom:12px;}
+.state-wrap p{color:var(--muted);font-size:14px;line-height:1.9;}
+
+/* progress bar at top */
+.progress-bar{height:3px;background:rgba(255,255,255,0.08);position:fixed;top:0;left:0;right:0;z-index:100;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--gold));transition:.4s;width:0;}
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- loading -->
+<div id="stLoading">
+  <div class="page"><div class="state-wrap"><div class="state-icon">⏳</div><p>載入中，請稍候...</p></div></div>
+</div>
+
+<!-- error -->
+<div id="stError" style="display:none">
+  <div class="page"><div class="state-wrap"><div class="state-icon">⚠️</div><h2>無法載入</h2><p id="errMsg">請確認連結是否正確</p></div></div>
+</div>
+
+<!-- already submitted -->
+<div id="stDone" style="display:none">
+  <div class="page"><div class="state-wrap">
+    <div class="state-icon">✅</div>
+    <h2>選擇已送出！</h2>
+    <p>感謝您完成名片內容選擇<br>顧問將依您選擇的內容整理名片欄位<br>確認後會再與您聯繫，謝謝！</p>
+  </div></div>
+</div>
+
+<!-- main form -->
+<div id="stMain" style="display:none">
+  <div class="page">
+    <div class="top-bar">
+      <div class="brand">✦ HSC 智慧名片</div>
+      <h1 id="pgTitle">請選擇您的名片內容</h1>
+      <p>每個欄位請選擇最適合您的選項<br>聯絡資訊請如實填寫</p>
+    </div>
+
+    <!-- client info -->
+    <div class="client-info">
+      <div class="ci-label">客戶資料確認</div>
+      <div class="ci-row">
+        <div class="ci-field">
+          <label>您的姓名</label>
+          <input type="text" id="ciName" placeholder="請確認姓名">
+        </div>
+        <div class="ci-field">
+          <label>手機號碼</label>
+          <input type="text" id="ciPhone" placeholder="請填入手機號碼">
+        </div>
+      </div>
+    </div>
+
+    <div id="fieldsWrap"></div>
+
+    <div class="notes-card">
+      <div class="sec-label">💬 其他建議或備註</div>
+      <textarea class="ta-field" id="otherNotes" placeholder="（選填）有任何想補充的想法或顧慮，歡迎寫在這裡..."></textarea>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-submit" id="submitBtn" onclick="submitAll()">送出我的選擇 →</button>
+  </div>
+</div>
+
+<script>
+const GAS = 'https://script.google.com/macros/s/AKfycbxuvn0CTiQ42qBUkU_tFA4X5GnzsOAOuMSfw304nRtjTpFzmg56MD3-EiUKHcJo9_p_BQ/exec';
+const CASE_CODE = new URLSearchParams(location.search).get('case') || '';
+let caseData = null;
+let content = null;
+
+// selections object
+const sel = {
+  field1_role: null, field1_slogan: null,
+  field2_services: null, field3_story: null,
+  field5_marquee: null, field7_cta: null, field8_photos: null
+};
+
+function show(id) {
+  ['stLoading','stError','stDone','stMain'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+}
+
+function showErr(msg) { document.getElementById('errMsg').textContent = msg; show('stError'); }
+
+// ── init ──
+async function init() {
+  if (!CASE_CODE) { showErr('連結格式錯誤：缺少案件代號（?case=XXX）'); return; }
+  try {
+    const r = await fetch(GAS + '?action=getCase&caseCode=' + encodeURIComponent(CASE_CODE));
+    const j = await r.json();
+    if (!j.data) { showErr('找不到此案件（' + CASE_CODE + '），請確認連結是否正確'); return; }
+    caseData = j.data;
+    if (caseData.status === '已勾選' || caseData.status === '已確認') { show('stDone'); return; }
+    try {
+      content = JSON.parse(caseData.contentJSON);
+    } catch(e) {
+      showErr('內容格式錯誤，請通知顧問：' + e.message); return;
+    }
+    render();
+  } catch(e) { showErr('網路錯誤：' + e.message); }
+}
+
+// ── render ──
+function render() {
+  document.getElementById('ciName').value = caseData.clientName || '';
+  document.getElementById('ciPhone').value = caseData.clientPhone || '';
+  if (caseData.clientName) {
+    document.getElementById('pgTitle').textContent = caseData.clientName + '，請選擇您的名片內容';
+    document.title = caseData.clientName + '｜名片內容選擇';
+  }
+
+  const wrap = document.getElementById('fieldsWrap');
+  wrap.innerHTML = '';
+  let secNum = 1;
+
+  // field1_title
+  if (content.field1_title && content.field1_title.options) {
+    wrap.appendChild(buildSelectCard(
+      secNum++, '稱謂 ＋ Slogan', true,
+      content.field1_title.options,
+      opt => {
+        const roleHtml = `<div class="f1-role">${esc(opt.role)}</div>`;
+        const lines = splitSlogan(opt.slogan || '');
+        const sloganHtml = `<div class="f1-slogan">${lines.map(l => `<span class="f1-slogan-line">${esc(l)}</span>`).join('')}</div>
+          <div class="f1-char-hint">每行 ${lines.map(l=>l.length).join('、')} 字</div>`;
+        return roleHtml + sloganHtml;
+      },
+      (opt) => {
+        sel.field1_role = opt.role;
+        sel.field1_slogan = opt.slogan;
+      }
+    ));
+  }
+
+  // field2_services
+  if (content.field2_services && content.field2_services.options) {
+    wrap.appendChild(buildSelectCard(
+      secNum++, '服務項目', true,
+      content.field2_services.options,
+      opt => {
+        const items = (opt.items || []).map(it => `<div class="svc-item"><span class="svc-dot">◆</span>${esc(it)}</div>`).join('');
+        return `<div class="svc-list">${items}</div>`;
+      },
+      (opt) => { sel.field2_services = (opt.items || []).join('、'); }
+    ));
+  }
+
+  // field3_story
+  if (content.field3_story && content.field3_story.options) {
+    wrap.appendChild(buildSelectCard(
+      secNum++, '品牌故事', true,
+      content.field3_story.options,
+      opt => `
+        <div class="story-style">${esc(opt.style || '')}</div>
+        <div class="story-desc">${esc(opt.desc || '')}</div>
+        <div class="story-content">${esc(opt.content || '')}</div>
+      `,
+      (opt) => { sel.field3_story = opt.content || ''; }
+    ));
+  }
+
+  // field4_contact (inputs)
+  {
+    const card = document.createElement('div');
+    card.className = 'fcard';
+    card.innerHTML = `
+      <div class="sec-label"><span class="sec-num">${secNum++}</span> 聯絡方式 <span class="sec-req">（由您填寫）</span></div>
+      <div class="inp-hint">以下資料將顯示在名片上，請如實填寫（不需要的欄位可以留空）</div>
+      <div class="irow"><label>LINE ID 或電話</label><input type="text" id="inp_field4_line" placeholder="例：@hsc168 或 0912345678"></div>
+      <div class="irow"><label>微信 WeChat ID</label><input type="text" id="inp_field4_wechat" placeholder="若無可留空"></div>
+      <div class="irow"><label>手機電話</label><input type="text" id="inp_field4_phone" placeholder="例：0912-345-678"></div>
+      <div class="irow"><label>Email</label><input type="text" id="inp_field4_email" placeholder="例：name@example.com"></div>
+      <div class="irow"><label>地址或工作地點</label><input type="text" id="inp_field4_address" placeholder="（選填）例：台北市信義區..."></div>
+    `;
+    wrap.appendChild(card);
+  }
+
+  // field5_marquee
+  if (content.field5_marquee && content.field5_marquee.options) {
+    wrap.appendChild(buildSelectCard(
+      secNum++, '跑馬燈文字', true,
+      content.field5_marquee.options,
+      opt => `<div class="marquee-text">${esc(opt.text || '')}</div>`,
+      (opt) => { sel.field5_marquee = opt.text || ''; }
+    ));
+  }
+
+  // field6_media (inputs)
+  {
+    const card = document.createElement('div');
+    card.className = 'fcard';
+    card.innerHTML = `
+      <div class="sec-label"><span class="sec-num">${secNum++}</span> 影音 ／ 社群連結 <span class="sec-req">（由您填寫）</span></div>
+      <div class="inp-hint">若有 YouTube 頻道或 FB 粉絲專頁，請貼上完整網址（若無可留空）</div>
+      <div class="irow"><label>YouTube 頻道連結</label><input type="text" id="inp_field6_youtube" placeholder="例：https://youtube.com/@..."></div>
+      <div class="irow"><label>FB 粉絲專頁連結</label><input type="text" id="inp_field6_fb" placeholder="例：https://facebook.com/..."></div>
+    `;
+    wrap.appendChild(card);
+  }
+
+  // field7_cta
+  if (content.field7_cta && content.field7_cta.options) {
+    wrap.appendChild(buildSelectCard(
+      secNum++, 'CTA 行動按鈕', true,
+      content.field7_cta.options,
+      opt => {
+        const btns = (opt.buttons || []).map(b => `<div class="cta-item">${esc(b)}</div>`).join('');
+        return `<div class="cta-list">${btns}</div>`;
+      },
+      (opt) => { sel.field7_cta = (opt.buttons || []).join('、'); }
+    ));
+  }
+
+  // field8_photos
+  if (content.field8_photos && content.field8_photos.options) {
+    wrap.appendChild(buildSelectCard(
+      secNum++, '照片方向', true,
+      content.field8_photos.options,
+      opt => {
+        const dirs = (opt.directions || []).map(d => `<div class="photo-item"><span class="svc-dot">▸</span>${esc(d)}</div>`).join('');
+        return `<div class="photo-list">${dirs}</div>`;
+      },
+      (opt) => { sel.field8_photos = (opt.directions || []).join('、'); }
+    ));
+  }
+
+  show('stMain');
+  updateProgress();
+}
+
+// ── build select card ──
+function buildSelectCard(num, title, required, options, renderFn, onSelect) {
+  const card = document.createElement('div');
+  card.className = 'fcard';
+  const fieldKey = 'f' + num;
+
+  const reqSpan = required ? `<span class="sec-req">*必選</span>` : '';
+  let html = `<div class="sec-label"><span class="sec-num">${num}</span> ${esc(title)} ${reqSpan}</div><div class="opt-list" id="${fieldKey}-list">`;
+
+  options.forEach((opt, idx) => {
+    const id = opt.id || String.fromCharCode(65 + idx);
+    html += `<div class="opt-card" id="${fieldKey}-opt-${id}" data-field="${fieldKey}" data-id="${id}" onclick="pickOpt('${fieldKey}','${id}')">
+      <div class="opt-badge">${esc(id)}</div>
+      ${renderFn(opt)}
+    </div>`;
+  });
+
+  html += '</div>';
+  card.innerHTML = html;
+
+  // store onSelect callback by field key
+  card.dataset.fieldKey = fieldKey;
+  card._onSelect = onSelect;
+
+  // store options mapping for later
+  card._options = options;
+  card._optMap = {};
+  options.forEach((opt, idx) => {
+    const id = opt.id || String.fromCharCode(65 + idx);
+    card._optMap[id] = opt;
+  });
+
+  // store in global map
+  fieldCards[fieldKey] = { onSelect, optMap: card._optMap };
+
+  return card;
+}
+
+const fieldCards = {};
+
+function pickOpt(fieldKey, optId) {
+  document.querySelectorAll(`.opt-card[data-field="${fieldKey}"]`).forEach(c => c.classList.remove('selected'));
+  const el = document.getElementById(fieldKey + '-opt-' + optId);
+  if (el) el.classList.add('selected');
+  const fc = fieldCards[fieldKey];
+  if (fc && fc.optMap[optId]) fc.onSelect(fc.optMap[optId]);
+  updateProgress();
+}
+
+// ── progress ──
+const REQUIRED_FIELDS = ['field1_role','field2_services','field3_story','field5_marquee','field7_cta','field8_photos'];
+
+function countCompleted() {
+  let n = 0;
+  if (sel.field1_role) n++;
+  if (sel.field2_services) n++;
+  if (sel.field3_story) n++;
+  if (sel.field5_marquee) n++;
+  if (sel.field7_cta) n++;
+  if (sel.field8_photos) n++;
+
+  const total = Object.keys(fieldCards).length;  // actual number of select fields
+  return { done: n, total };
+}
+
+function updateProgress() {
+  const { done, total } = countCompleted();
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ── split slogan at 13 chars ──
+function splitSlogan(text) {
+  if (!text) return [''];
+  const lines = text.split('\n');
+  const result = [];
+  lines.forEach(line => {
+    if (line.length <= 13) { result.push(line); return; }
+    for (let i = 0; i < line.length; i += 13) result.push(line.slice(i, i + 13));
+  });
+  return result;
+}
+
+// ── collect inputs ──
+function collectInputs() {
+  return {
+    field4_line: (document.getElementById('inp_field4_line') || {}).value?.trim() || '',
+    field4_wechat: (document.getElementById('inp_field4_wechat') || {}).value?.trim() || '',
+    field4_phone: (document.getElementById('inp_field4_phone') || {}).value?.trim() || '',
+    field4_email: (document.getElementById('inp_field4_email') || {}).value?.trim() || '',
+    field4_address: (document.getElementById('inp_field4_address') || {}).value?.trim() || '',
+    field6_youtube: (document.getElementById('inp_field6_youtube') || {}).value?.trim() || '',
+    field6_fb: (document.getElementById('inp_field6_fb') || {}).value?.trim() || '',
+  };
+}
+
+// ── get existing select fields ──
+function getRequiredSelectFields() {
+  // Return keys that are actually rendered (some may not exist in JSON)
+  const required = [];
+  if (content.field1_title) required.push({label:'稱謂+Slogan', check: () => sel.field1_role});
+  if (content.field2_services) required.push({label:'服務項目', check: () => sel.field2_services});
+  if (content.field3_story) required.push({label:'品牌故事', check: () => sel.field3_story});
+  if (content.field5_marquee) required.push({label:'跑馬燈文字', check: () => sel.field5_marquee});
+  if (content.field7_cta) required.push({label:'CTA按鈕', check: () => sel.field7_cta});
+  if (content.field8_photos) required.push({label:'照片方向', check: () => sel.field8_photos});
+  return required;
+}
+
+// ── submit ──
+async function submitAll() {
+  const missing = getRequiredSelectFields().filter(f => !f.check());
+  if (missing.length) {
+    alert('請選擇以下欄位的選項：\n' + missing.map(f => f.label).join('、'));
+    return;
+  }
+
+  const inputs = collectInputs();
+  const clientName = (document.getElementById('ciName').value || '').trim() || caseData.clientName;
+  const clientPhone = (document.getElementById('ciPhone').value || '').trim() || caseData.clientPhone || '';
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '送出中...';
+
+  const payload = {
+    action: 'submitSelection',
+    caseCode: CASE_CODE,
+    clientName,
+    clientPhone,
+    field1_role: sel.field1_role || '',
+    field1_slogan: sel.field1_slogan || '',
+    field2_services: sel.field2_services || '',
+    field3_story: sel.field3_story || '',
+    field5_marquee: sel.field5_marquee || '',
+    field7_cta: sel.field7_cta || '',
+    field8_photos: sel.field8_photos || '',
+    ...inputs,
+    otherNotes: (document.getElementById('otherNotes').value || '').trim()
+  };
+
+  try {
+    const r = await fetch(GAS, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+    if (j.status === 'ok') {
+      show('stDone');
+    } else {
+      alert('送出失敗：' + (j.message || '未知錯誤'));
+      btn.disabled = false; btn.textContent = '送出我的選擇 →';
+    }
+  } catch(e) {
+    alert('網路錯誤：' + e.message);
+    btn.disabled = false; btn.textContent = '送出我的選擇 →';
+  }
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>

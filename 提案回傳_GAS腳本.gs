@@ -51,19 +51,19 @@ function setupHeaders() {
   // 智慧名片內容協作系統
   let cardCasesSheet = ss.getSheetByName(CARD_CASES_SHEET);
   if (!cardCasesSheet) cardCasesSheet = ss.insertSheet(CARD_CASES_SHEET);
-  cardCasesSheet.getRange(1, 1, 2, 5).setValues([
-    ["caseCode", "clientName", "contentJSON", "createdDate", "status"],
-    ["案件代號",  "客戶名稱",   "內容JSON",    "建立日期",    "狀態"]
+  cardCasesSheet.getRange(1, 1, 2, 6).setValues([
+    ["caseCode", "clientName", "clientPhone", "contentJSON", "status",  "createdDate"],
+    ["案件代號",  "客戶名稱",   "客戶手機",    "內容JSON",    "狀態",    "建立日期"]
   ]);
-  cardCasesSheet.getRange(1, 1, 2, 5).setFontWeight("bold");
+  cardCasesSheet.getRange(1, 1, 2, 6).setFontWeight("bold");
 
   let cardSelSheet = ss.getSheetByName(CARD_SELECTIONS_SHEET);
   if (!cardSelSheet) cardSelSheet = ss.insertSheet(CARD_SELECTIONS_SHEET);
-  cardSelSheet.getRange(1, 1, 2, 18).setValues([
-    ["caseCode","clientName","submittedAt","field1_role","field1_slogan","field2_services","field3_story","field4_line","field4_wechat","field4_phone","field4_email","field4_address","field5_marquee","field6_youtube","field6_fb","field7_cta","field8_photos","otherNotes"],
-    ["案件代號", "客戶名稱",  "送出時間",  "稱謂職稱",  "主標語",       "服務項目",       "品牌故事",   "LINE",       "微信",          "電話",        "Email",       "地址",          "跑馬燈",        "YouTube",       "FB粉專",    "CTA按鈕",   "照片方向",   "其他備註"]
+  cardSelSheet.getRange(1, 1, 2, 19).setValues([
+    ["caseCode","clientName","clientPhone","submittedAt","field1_role","field1_slogan","field2_services","field3_story","field4_line","field4_wechat","field4_phone","field4_email","field4_address","field5_marquee","field6_youtube","field6_fb","field7_cta","field8_photos","otherNotes"],
+    ["案件代號", "客戶名稱",  "客戶手機",  "送出時間",  "稱謂職稱",  "主標語",       "服務項目",       "品牌故事",   "LINE",       "微信",          "電話",        "Email",       "地址",          "跑馬燈",        "YouTube",       "FB粉專",    "CTA按鈕",   "照片方向",   "其他備註"]
   ]);
-  cardSelSheet.getRange(1, 1, 2, 18).setFontWeight("bold");
+  cardSelSheet.getRange(1, 1, 2, 19).setFontWeight("bold");
 }
 
 /* ---------------- doGet：讀取類請求（列表、載入單一案件），支援 JSONP 避開瀏覽器 CORS 限制 ---------------- */
@@ -147,6 +147,8 @@ function doPost(e) {
       createCardCase_(data);
     } else if (action === "submitSelection") {
       result = submitCardSelection_(data);
+    } else if (action === "updateCardCaseStatus") {
+      updateCardCaseStatus_(data.caseCode, data.status);
     }
 
     return ContentService
@@ -303,8 +305,9 @@ function listCardCases_() {
     out.push({
       caseCode: String(data[i][0]),
       clientName: String(data[i][1]),
-      createdDate: data[i][3] ? String(data[i][3]).slice(0, 10) : '',
-      status: data[i][4] || '待填寫'
+      clientPhone: String(data[i][2] || ''),
+      createdDate: data[i][5] ? String(data[i][5]).slice(0, 10) : '',
+      status: data[i][4] || '待勾選'
     });
   }
   return out;
@@ -319,9 +322,10 @@ function getCardCase_(caseCode) {
       return {
         caseCode: String(data[i][0]),
         clientName: String(data[i][1]),
-        contentJSON: String(data[i][2]),
-        createdDate: data[i][3] ? String(data[i][3]).slice(0, 10) : '',
-        status: data[i][4] || '待填寫'
+        clientPhone: String(data[i][2] || ''),
+        contentJSON: String(data[i][3]),
+        status: data[i][4] || '待勾選',
+        createdDate: data[i][5] ? String(data[i][5]).slice(0, 10) : ''
       };
     }
   }
@@ -349,19 +353,22 @@ function createCardCase_(data) {
   let sheet = ss.getSheetByName(CARD_CASES_SHEET);
   if (!sheet) {
     sheet = ss.insertSheet(CARD_CASES_SHEET);
-    sheet.getRange(1, 1, 1, 5).setValues([["caseCode 案件代號", "clientName 客戶名稱", "contentJSON 內容JSON", "createdDate 建立日期", "status 狀態"]]);
-    sheet.getRange(1, 1, 1, 5).setFontWeight("bold");
+    sheet.getRange(1, 1, 2, 6).setValues([
+      ["caseCode", "clientName", "clientPhone", "contentJSON", "status", "createdDate"],
+      ["案件代號",  "客戶名稱",   "客戶手機",    "內容JSON",    "狀態",   "建立日期"]
+    ]);
+    sheet.getRange(1, 1, 2, 6).setFontWeight("bold");
   }
   const existing = sheet.getDataRange().getValues();
   for (let i = 2; i < existing.length; i++) {
     if (String(existing[i][0]) === String(data.caseCode)) {
-      sheet.getRange(i + 1, 1, 1, 5).setValues([[
-        data.caseCode, data.clientName, data.contentJSON, existing[i][3], existing[i][4] || '待填寫'
+      sheet.getRange(i + 1, 1, 1, 6).setValues([[
+        data.caseCode, data.clientName, data.clientPhone || '', data.contentJSON, existing[i][4] || '待勾選', existing[i][5]
       ]]);
       return;
     }
   }
-  sheet.appendRow([data.caseCode, data.clientName, data.contentJSON, new Date(), '待填寫']);
+  sheet.appendRow([data.caseCode, data.clientName, data.clientPhone || '', data.contentJSON, '待勾選', new Date()]);
 }
 
 function submitCardSelection_(data) {
@@ -369,17 +376,14 @@ function submitCardSelection_(data) {
   let selSheet = ss.getSheetByName(CARD_SELECTIONS_SHEET);
   if (!selSheet) {
     selSheet = ss.insertSheet(CARD_SELECTIONS_SHEET);
-    selSheet.getRange(1, 1, 1, 18).setValues([[
-      "caseCode 案件代號", "clientName 客戶名稱", "submittedAt 送出時間",
-      "field1_role 稱謂職稱", "field1_slogan 主標語", "field2_services 服務項目", "field3_story 品牌故事",
-      "field4_line LINE", "field4_wechat 微信", "field4_phone 電話", "field4_email Email", "field4_address 地址",
-      "field5_marquee 跑馬燈", "field6_youtube YouTube", "field6_fb FB粉專",
-      "field7_cta CTA按鈕", "field8_photos 照片方向", "otherNotes 其他備註"
-    ]]);
-    selSheet.getRange(1, 1, 1, 18).setFontWeight("bold");
+    selSheet.getRange(1, 1, 2, 19).setValues([
+      ["caseCode","clientName","clientPhone","submittedAt","field1_role","field1_slogan","field2_services","field3_story","field4_line","field4_wechat","field4_phone","field4_email","field4_address","field5_marquee","field6_youtube","field6_fb","field7_cta","field8_photos","otherNotes"],
+      ["案件代號", "客戶名稱",  "客戶手機",  "送出時間",  "稱謂職稱",  "主標語",       "服務項目",       "品牌故事",   "LINE",       "微信",          "電話",        "Email",       "地址",          "跑馬燈",        "YouTube",       "FB粉專",    "CTA按鈕",   "照片方向",   "其他備註"]
+    ]);
+    selSheet.getRange(1, 1, 2, 19).setFontWeight("bold");
   }
   selSheet.appendRow([
-    data.caseCode || '', data.clientName || '', new Date(),
+    data.caseCode || '', data.clientName || '', data.clientPhone || '', new Date(),
     data.field1_role || '', data.field1_slogan || '',
     data.field2_services || '', data.field3_story || '',
     data.field4_line || '', data.field4_wechat || '',
@@ -394,10 +398,22 @@ function submitCardSelection_(data) {
     const casesData = casesSheet.getDataRange().getValues();
     for (let i = 2; i < casesData.length; i++) {
       if (String(casesData[i][0]) === String(data.caseCode)) {
-        casesSheet.getRange(i + 1, 5).setValue('已送出');
+        casesSheet.getRange(i + 1, 5).setValue('已勾選');
         break;
       }
     }
   }
   return { status: 'ok', message: '選擇已儲存' };
+}
+
+function updateCardCaseStatus_(caseCode, newStatus) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CARD_CASES_SHEET);
+  if (!sheet) return;
+  const data = sheet.getDataRange().getValues();
+  for (let i = 2; i < data.length; i++) {
+    if (String(data[i][0]) === String(caseCode)) {
+      sheet.getRange(i + 1, 5).setValue(newStatus);
+      return;
+    }
+  }
 }

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>名片文案後台 — HSC</title>
+<style>
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--border:#2a2d3e;
+  --text:#e8eaf0;--muted:#6b7280;--accent:#f59e0b;
+  --green:#22c55e;--blue:#3b82f6;--red:#ef4444;--purple:#8b5cf6;
+  --card:#20232f;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',-apple-system,sans-serif;font-size:14px;min-height:100vh;}
+
+/* auth overlay */
+#authOverlay{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px;text-align:center;width:320px;}
+.auth-box h2{font-size:20px;margin-bottom:8px;color:var(--accent);}
+.auth-box p{color:var(--muted);font-size:13px;margin-bottom:24px;}
+.auth-input{width:100%;padding:11px 14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;margin-bottom:14px;}
+.auth-input:focus{outline:none;border-color:var(--accent);}
+.auth-err{color:var(--red);font-size:13px;margin-bottom:10px;display:none;}
+
+/* layout */
+.wrap{max-width:900px;margin:0 auto;padding:24px 18px;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.header h1{font-size:22px;font-weight:700;color:var(--accent);}
+.header span{font-size:12px;color:var(--muted);}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 14px;text-align:center;}
+.stat-num{font-size:28px;font-weight:700;color:var(--accent);line-height:1.1;}
+.stat-label{font-size:11px;color:var(--muted);margin-top:4px;}
+.stat-card.s1 .stat-num{color:var(--text);}
+.stat-card.s2 .stat-num{color:#f59e0b;}
+.stat-card.s3 .stat-num{color:var(--blue);}
+.stat-card.s4 .stat-num{color:var(--green);}
+
+/* filter tabs */
+.tabs{display:flex;gap:8px;margin-bottom:18px;}
+.tab{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;transition:.15s;}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#0f1117;font-weight:700;}
+
+/* create form */
+.create-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:20px;overflow:hidden;}
+.section-head{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.section-head h2{font-size:15px;font-weight:600;}
+.toggle-icon{font-size:18px;transition:.2s;}
+.section-body{padding:18px;border-top:1px solid var(--border);display:none;}
+.section-body.open{display:block;}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-row.full{grid-template-columns:1fr;}
+.fld label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;}
+.fld input,.fld textarea,.fld select{width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;}
+.fld input:focus,.fld textarea:focus{outline:none;border-color:var(--accent);}
+.fld textarea{min-height:160px;resize:vertical;font-size:12px;}
+.fld small{display:block;margin-top:4px;font-size:11px;color:var(--muted);}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:none;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;font-weight:600;}
+.btn-primary{background:var(--accent);color:#0f1117;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-green{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:var(--green);}
+.btn-green:hover{background:rgba(34,197,94,0.25);}
+.btn-blue{background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);color:var(--blue);}
+.btn-blue:hover{background:rgba(59,130,246,0.25);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* case list */
+.case-list{display:flex;flex-direction:column;gap:10px;}
+.case-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.case-head{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;}
+.case-code{font-family:monospace;font-size:13px;color:var(--accent);font-weight:700;min-width:110px;}
+.case-name{font-weight:600;flex:1;}
+.case-phone{font-size:12px;color:var(--muted);min-width:100px;}
+.case-date{font-size:11px;color:var(--muted);min-width:82px;text-align:right;}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap;}
+.badge-wait{background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);}
+.badge-sel{background:rgba(59,130,246,0.15);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+.badge-done{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+
+.case-body{display:none;padding:14px 16px;border-top:1px solid var(--border);}
+.case-body.open{display:block;}
+
+.action-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+
+/* selection display */
+.sel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
+.sel-item{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
+.sel-item-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.sel-item-val{font-size:13px;white-space:pre-wrap;color:var(--text);}
+.sel-empty{color:var(--muted);font-size:13px;text-align:center;padding:20px;}
+
+/* copy toast */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:10px 22px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:.3s;pointer-events:none;z-index:9999;}
+.toast.show{opacity:1;}
+
+/* loading dots */
+.dots::after{content:'...';animation:dots 1s infinite;}
+@keyframes dots{0%{content:'.';}50%{content:'..';}100%{content:'...'}}
+
+@media(max-width:600px){
+  .form-row{grid-template-columns:1fr;}
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .case-phone,.case-date{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- auth -->
+<div id="authOverlay">
+  <div class="auth-box">
+    <h2>名片文案後台</h2>
+    <p>HSC 智慧名片內容協作系統</p>
+    <input type="password" class="auth-input" id="pwInput" placeholder="請輸入管理密碼" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="auth-err" id="authErr">密碼錯誤，請再試一次</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doLogin()">進入後台</button>
+  </div>
+</div>
+
+<!-- main -->
+<div id="mainApp" style="display:none">
+<div class="wrap">
+  <div class="header">
+    <h1>✦ 名片文案後台</h1>
+    <span id="refreshHint"></span>
+  </div>
+
+  <!-- stats -->
+  <div class="stats">
+    <div class="stat-card s1"><div class="stat-num" id="statTotal">—</div><div class="stat-label">全部案件</div></div>
+    <div class="stat-card s2"><div class="stat-num" id="statWait">—</div><div class="stat-label">待勾選</div></div>
+    <div class="stat-card s3"><div class="stat-num" id="statSel">—</div><div class="stat-label">已勾選</div></div>
+    <div class="stat-card s4"><div class="stat-num" id="statDone">—</div><div class="stat-label">已確認</div></div>
+  </div>
+
+  <!-- filter tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="setFilter('全部',this)">全部</button>
+    <button class="tab" onclick="setFilter('待勾選',this)">待勾選</button>
+    <button class="tab" onclick="setFilter('已勾選',this)">已勾選</button>
+    <button class="tab" onclick="setFilter('已確認',this)">已確認</button>
+  </div>
+
+  <!-- create form -->
+  <div class="create-section">
+    <div class="section-head" onclick="toggleSection(this)">
+      <h2>➕ 新增名片文案案件</h2>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body" id="createBody">
+      <div class="form-row">
+        <div class="fld">
+          <label>案件代號 *</label>
+          <input type="text" id="fCode" placeholder="例：CHEN-20260703">
+          <small>建議格式：客戶姓氏-日期</small>
+        </div>
+        <div class="fld">
+          <label>客戶名稱 *</label>
+          <input type="text" id="fName" placeholder="例：陳美玲">
+        </div>
+        <div class="fld">
+          <label>客戶手機</label>
+          <input type="text" id="fPhone" placeholder="例：0912345678">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="fld">
+          <label>AI 生成的名片文案 JSON *</label>
+          <textarea id="fJson" placeholder='貼上 AI 產生的完整 JSON，格式如：
+{
+  "caseCode": "CHEN-20260703",
+  "clientName": "陳美玲",
+  "field1_title": { "options": [...] },
+  "field2_services": { "options": [...] },
+  ...
+}'></textarea>
+          <small>貼入後系統會自動解析並建立客戶填寫頁面</small>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn btn-primary" onclick="createCase()">建立案件</button>
+        <button class="btn btn-outline" onclick="clearForm()">清空</button>
+      </div>
+      <div id="createMsg" style="margin-top:10px;font-size:13px;"></div>
+    </div>
+  </div>
+
+  <!-- case list -->
+  <div class="case-list" id="caseList">
+    <div style="text-align:center;padding:40px;color:var(--muted);" id="listMsg">載入中<span class="dots"></span></div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GAS = 'https://script.google.com/macros/s/AKfycbxuvn0CTiQ42qBUkU_tFA4X5GnzsOAOuMSfw304nRtjTpFzmg56MD3-EiUKHcJo9_p_BQ/exec';
+const BASE = 'https://angel0973180707.github.io/-proposal-system';
+const PASS = 'angel2024';
+
+let allCases = [];
+let currentFilter = '全部';
+
+// ── auth ──
+function doLogin() {
+  if (document.getElementById('pwInput').value === PASS) {
+    document.getElementById('authOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    loadCases();
+  } else {
+    document.getElementById('authErr').style.display = 'block';
+  }
+}
+document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+// ── toggle section ──
+function toggleSection(head) {
+  const body = head.nextElementSibling;
+  const icon = head.querySelector('.toggle-icon');
+  body.classList.toggle('open');
+  icon.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+// ── filter ──
+function setFilter(val, btn) {
+  currentFilter = val;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+// ── stats ──
+function updateStats(cases) {
+  document.getElementById('statTotal').textContent = cases.length;
+  document.getElementById('statWait').textContent = cases.filter(c => c.status === '待勾選').length;
+  document.getElementById('statSel').textContent = cases.filter(c => c.status === '已勾選').length;
+  document.getElementById('statDone').textContent = cases.filter(c => c.status === '已確認').length;
+}
+
+// ── load cases ──
+async function loadCases() {
+  document.getElementById('listMsg').style.display = 'block';
+  document.getElementById('listMsg').innerHTML = '載入中<span class="dots"></span>';
+  try {
+    const r = await fetch(GAS + '?action=listCardCases');
+    const j = await r.json();
+    allCases = (j.cases || []).reverse();
+    updateStats(allCases);
+    renderList();
+    document.getElementById('refreshHint').textContent = '最後更新：' + new Date().toLocaleTimeString('zh-TW');
+  } catch(e) {
+    document.getElementById('listMsg').textContent = '載入失敗：' + e.message;
+  }
+}
+
+// ── render list ──
+function renderList() {
+  const list = document.getElementById('caseList');
+  const msg = document.getElementById('listMsg');
+  const filtered = currentFilter === '全部' ? allCases : allCases.filter(c => c.status === currentFilter);
+  if (!filtered.length) {
+    list.innerHTML = '';
+    msg.style.display = 'block';
+    msg.textContent = currentFilter === '全部' ? '尚無案件，請新增第一個案件' : '此分類目前沒有案件';
+    return;
+  }
+  msg.style.display = 'none';
+  list.innerHTML = filtered.map(c => `
+    <div class="case-card" id="card-${c.caseCode}">
+      <div class="case-head" onclick="toggleCase('${c.caseCode}')">
+        <span class="case-code">${esc(c.caseCode)}</span>
+        <span class="case-name">${esc(c.clientName)}</span>
+        <span class="case-phone">${esc(c.clientPhone || '—')}</span>
+        <span class="${badgeClass(c.status)}">${esc(c.status)}</span>
+        <span class="case-date">${c.createdDate || ''}</span>
+      </div>
+      <div class="case-body" id="body-${c.caseCode}"></div>
+    </div>
+  `).join('');
+}
+
+function badgeClass(s) {
+  if (s === '已確認') return 'badge badge-done';
+  if (s === '已勾選') return 'badge badge-sel';
+  return 'badge badge-wait';
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── toggle case card ──
+async function toggleCase(caseCode) {
+  const body = document.getElementById('body-' + caseCode);
+  if (body.classList.contains('open')) {
+    body.classList.remove('open');
+    return;
+  }
+  body.classList.add('open');
+  if (!body.dataset.loaded) {
+    body.innerHTML = '<div style="color:var(--muted);font-size:13px;">載入中...</div>';
+    await loadCaseDetail(caseCode);
+  }
+}
+
+async function loadCaseDetail(caseCode) {
+  const c = allCases.find(x => x.caseCode === caseCode);
+  const body = document.getElementById('body-' + caseCode);
+  const clientLink = BASE + '/card-select.html?case=' + encodeURIComponent(caseCode);
+
+  const copyLinkMsg = `您好 ${c.clientName}！\n\n請點以下連結選擇您的智慧名片內容：\n${clientLink}\n\n請在 3 天內完成選擇，謝謝！`;
+
+  let selHtml = '';
+  if (c.status === '已勾選' || c.status === '已確認') {
+    try {
+      const r = await fetch(GAS + '?action=getSelection&caseCode=' + encodeURIComponent(caseCode));
+      const j = await r.json();
+      selHtml = renderSelection(j.data);
+    } catch(e) {
+      selHtml = '<div class="sel-empty">載入客戶選擇失敗：' + esc(e.message) + '</div>';
+    }
+  }
+
+  const confirmBtn = c.status === '已勾選'
+    ? `<button class="btn btn-green" onclick="confirmCase('${caseCode}')">✔ 標記為已確認</button>`
+    : '';
+
+  body.innerHTML = `
+    <div class="action-bar">
+      <button class="btn btn-outline" onclick="copyText(\`${escapeTpl(copyLinkMsg)}\`)">📋 複製傳送訊息</button>
+      <button class="btn btn-blue" onclick="window.open('${esc(clientLink)}','_blank')">🔗 開啟填寫頁</button>
+      ${confirmBtn}
+      <button class="btn btn-outline" onclick="loadCases()" style="margin-left:auto;">↻ 重新整理</button>
+    </div>
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">客戶填寫連結</div>
+      <div style="font-size:12px;color:var(--blue);word-break:break-all;">${esc(clientLink)}</div>
+    </div>
+    ${selHtml}
+  `;
+  body.dataset.loaded = '1';
+}
+
+function escapeTpl(s) {
+  return s.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$');
+}
+
+function renderSelection(data) {
+  if (!data) return '<div class="sel-empty">尚未收到客戶填寫結果</div>';
+  const fields = [
+    {key:'field1_role', label:'稱謂/職稱'},
+    {key:'field1_slogan', label:'Slogan'},
+    {key:'field2_services', label:'服務項目'},
+    {key:'field3_story', label:'品牌故事'},
+    {key:'field4_line', label:'LINE'},
+    {key:'field4_wechat', label:'微信'},
+    {key:'field4_phone', label:'電話'},
+    {key:'field4_email', label:'Email'},
+    {key:'field4_address', label:'地址'},
+    {key:'field5_marquee', label:'跑馬燈'},
+    {key:'field6_youtube', label:'YouTube'},
+    {key:'field6_fb', label:'FB粉專'},
+    {key:'field7_cta', label:'CTA按鈕'},
+    {key:'field8_photos', label:'照片方向'},
+    {key:'otherNotes', label:'其他備註'}
+  ];
+  const submittedAt = data.submittedAt ? `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">送出時間：${esc(String(data.submittedAt).slice(0,19))}</div>` : '';
+  const items = fields.map(f => {
+    const v = data[f.key];
+    if (!v) return '';
+    return `<div class="sel-item"><div class="sel-item-label">${esc(f.label)}</div><div class="sel-item-val">${esc(v)}</div></div>`;
+  }).filter(Boolean).join('');
+  return submittedAt + `<div class="sel-grid">${items || '<div class="sel-empty" style="grid-column:1/-1">所有欄位均為空</div>'}</div>`;
+}
+
+// ── confirm case ──
+async function confirmCase(caseCode) {
+  try {
+    const r = await fetch(GAS, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'updateCardCaseStatus', caseCode, status:'已確認'})
+    });
+    const j = await r.json();
+    if (j.status === 'ok') {
+      const c = allCases.find(x => x.caseCode === caseCode);
+      if (c) c.status = '已確認';
+      updateStats(allCases);
+      const badge = document.querySelector(`#card-${caseCode} .badge`);
+      if (badge) { badge.className = 'badge badge-done'; badge.textContent = '已確認'; }
+      const body = document.getElementById('body-' + caseCode);
+      body.dataset.loaded = '';
+      await loadCaseDetail(caseCode);
+      showToast('已標記為確認 ✔');
+    }
+  } catch(e) { alert('操作失敗：' + e.message); }
+}
+
+// ── create case ──
+async function createCase() {
+  const code = document.getElementById('fCode').value.trim();
+  const name = document.getElementById('fName').value.trim();
+  const phone = document.getElementById('fPhone').value.trim();
+  const jsonStr = document.getElementById('fJson').value.trim();
+  const msg = document.getElementById('createMsg');
+
+  if (!code || !name) { msg.style.color='var(--red)'; msg.textContent = '請填寫案件代號和客戶名稱'; return; }
+  if (!jsonStr) { msg.style.color='var(--red)'; msg.textContent = '請貼入 AI 生成的 JSON 內容'; return; }
+  try { JSON.parse(jsonStr); } catch(e) { msg.style.color='var(--red)'; msg.textContent = 'JSON 格式錯誤：' + e.message; return; }
+
+  msg.style.color='var(--muted)'; msg.textContent = '建立中...';
+  try {
+    const r = await fetch(GAS, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'createCase', caseCode:code, clientName:name, clientPhone:phone, contentJSON:jsonStr})
+    });
+    const j = await r.json();
+    if (j.status === 'ok' || j.status === undefined) {
+      msg.style.color='var(--green)';
+      msg.textContent = '✔ 案件已建立！';
+      clearForm();
+      await loadCases();
+    } else {
+      msg.style.color='var(--red)';
+      msg.textContent = '失敗：' + (j.message || '未知錯誤');
+    }
+  } catch(e) { msg.style.color='var(--red)'; msg.textContent = '網路錯誤：' + e.message; }
+}
+
+function clearForm() {
+  ['fCode','fName','fPhone','fJson'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('createMsg').textContent = '';
+}
+
+// ── copy ──
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('已複製到剪貼簿！')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    showToast('已複製！');
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
