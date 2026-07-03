@@ -83,6 +83,8 @@ function doGet(e) {
       result = { status: "ok", data: getCardCase_(e.parameter.caseCode) };
     } else if (action === "getSelection") {
       result = { status: "ok", data: getCardSelection_(e.parameter.caseCode) };
+    } else if (action === "queryByPhone") {
+      result = { status: "ok", data: queryCardCasesByPhone_(e.parameter.phone || '') };
     } else {
       result = { status: "error", message: "未知的 action" };
     }
@@ -404,6 +406,27 @@ function submitCardSelection_(data) {
     }
   }
   return { status: 'ok', message: '選擇已儲存' };
+}
+
+function queryCardCasesByPhone_(phone) {
+  if (!phone) return [];
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CARD_CASES_SHEET);
+  if (!sheet) return [];
+  const data = sheet.getDataRange().getValues();
+  const out = [];
+  for (let i = 2; i < data.length; i++) {
+    if (!data[i][0]) continue;
+    const rowPhone = String(data[i][2] || '');
+    if (rowPhone && (rowPhone.includes(phone) || phone.includes(rowPhone.slice(-4)))) {
+      out.push({
+        caseCode:    String(data[i][0]),
+        clientName:  String(data[i][1]),
+        status:      String(data[i][4] || '待勾選'),
+        createdDate: data[i][5] ? String(data[i][5]).slice(0, 10) : ''
+      });
+    }
+  }
+  return out;
 }
 
 function updateCardCaseStatus_(caseCode, newStatus) {
